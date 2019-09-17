@@ -4,19 +4,25 @@ library(ggplot2)
 library(shinyBS)
 library(shinyjs)
 
+
+
 dashboardPage(skin="blue",
               
               #Title
-              dashboardHeader(title="Confidence Interval with SAT Score Example",titleWidth=400),
+              dashboardHeader(title="Confidence Interval with SAT Score Example",titleWidth=400,
+                              tags$li(class='dropdown',tags$a(href='https://shinyapps.science.psu.edu/',tags$img(src='homebut.PNG', width = 15)))),
               
               #Sidebar
               dashboardSidebar(
                 width = 300,
                 sidebarMenu(id = "tabs",
+                  ## menuItem("Prerequisite", tabName = "pre", icon = icon("book")),
                   menuItem("Overview", tabName = "over", icon = icon("dashboard")),
+                  
                   menuItem("SAT Math 2016", tabName = "2016", icon = icon("wpexplorer")),
                   menuItem("Find Z* Multiplier", tabName = "findz", icon = icon("wpexplorer")),
-                  menuItem("Tests for Differences Between Two Means", tabName = "popdiff", icon = icon("wpexplorer"))
+                  menuItem("Tests for Differences Between Two Means", tabName = "popdiff", icon = icon("wpexplorer")),
+                  conditionalPanel("input.sidebarmenu === 'over'")
                   
                 )),
               
@@ -30,6 +36,17 @@ dashboardPage(skin="blue",
                   tabItem(tabName = "over",
                           tags$a(href='http://stat.psu.edu/',tags$img(src='PS-HOR-RGB-2C.png', align = "left", width = 180)),
                           br(),br(),br(),
+                          
+                         # h3("Prerequisites:"),
+                          
+                          
+                         # div(style = "text-align: center",
+                         #      bsButton("pre", "Explore", icon("bolt"), style = "danger", size = "large", class="circle grow")
+                                
+                               
+                            
+                         # ),
+                          
                           h3(strong("About:")),
                           h4("This app represents an interactive supplementary module embedded in statistics lessons with two features. The first feature visualizes how the variations in confidence levels and sample size affect the outcome confidence interval in a single mean. The second feature tests the difference between two means by adjusting confidence levels and sample size and generating calculation results with explanations. The app requires students to engage in the interaction with the scenarios provided in context."),
                           h4(""),
@@ -41,7 +58,7 @@ dashboardPage(skin="blue",
                           h4(tags$li("The Z* multiplier page allows the user to find critical values (multiplier numbers) needed in making a confidence interval. Complete a short quiz to show you have mastered the concept.")),      
                           h4(tags$li("On the Test for Differences page the user can change the sample size and/or the confidence level to explore the behavior of a z-test for differences between males and females on the SAT math scores based on sample data.")),   
                           
-                          div(style = "text-align: center",bsButton("explore", "Explore", icon("bolt"), size = "large")),
+                          div(style = "text-align: center",bsButton("explore", "Explore", icon("bolt"), size = "large",class="circle grow")),
                           br(),
                           h3(strong("Acknowledgements:")),
                                    h4("This app was developed and coded by Yingjie (Chelsea) Wang."),
@@ -60,13 +77,20 @@ dashboardPage(skin="blue",
            
                           
                   ),
-                  
-                  
+                
+                #  tabItem(tabName = "pre",
+                #          fluidPage(
+                      
+                #            br(),br(),br(),
+                            
+                #            div(style = "text-align: center",bsButton("explore", "Explore", icon("bolt"), size = "large",class="circle grow")),
+                            
+                #            titlePanel("Prerequisites"),
+                #            h4("Nothing yet!"))),
+                    
                   tabItem(tabName = "2016",
                           fluidPage(
-                            div(style="display: inline-block;vertical-align:top;",
-                                tags$a(href='https://shinyapps.science.psu.edu/',tags$img(src='homebut.PNG', width = 15))
-                            ),
+                            
                             titlePanel("Confidence Intervals for 2016 SAT Math Score (μ = 508 and σ = 121)"),
                             sidebarLayout(
                               sidebarPanel(
@@ -105,26 +129,25 @@ dashboardPage(skin="blue",
                                 plotOutput("popMean",height = "300px"),
                                 bsPopover("popMean","Population Histogram","This is the histogram plot of the population based on percentage distribution of each score range.The green line is the true mean of the population.",
                                           trigger="hover",placement="bottom"),br(),
-                                plotOutput("CIplot",height = "600px", click = "plot_click"),
-                                bsPopover("CIplot","Confidence Interval Plot","The blue lines indicate a confidence interval covers the population mean and the red lines indicate that the population mean is outside of the confidence interval. Click on an interval to show a histogram for the underlying sample.",
-                                          trigger="hover",placement="top"),br(),
                                 br(),
                                 textOutput("CoverageRate"),
                                 tags$head(tags$style("#CoverageRate{color: black;
-                                 font-size: 40px;
+                                                     font-size: 40px;
                                                      font-style: italic;
                                                      }"
                          )
-                                )
+                                ),
+                                plotOutput("CIplot",height = "600px", click = "plot_click"),
+                                bsPopover("CIplot","Confidence Interval Plot","The blue lines indicate a confidence interval covers the population mean and the red lines indicate that the population mean is outside of the confidence interval. Click on an interval to show a histogram for the underlying sample.",
+                                          trigger="hover",placement="top"),br()
+                                
                               )
                             )
                           )
                   ),
                   tabItem(tabName = "findz",
                           fluidPage(
-                            div(style="display: inline-block;vertical-align:top;",
-                                tags$a(href='https://shinyapps.science.psu.edu/',tags$img(src='homebut.PNG', width = 15))
-                            ),
+                            
                             titlePanel("Confidence Intervals for a population mean (μ = 0 and σ = 1)"),
                             sidebarLayout(
                               sidebarPanel(
@@ -140,13 +163,21 @@ dashboardPage(skin="blue",
                                   style = "background-color: #A9A9A9;",
                                   
                                   h3("Quiz"),
-                                  textInput("question1", "What is z∗  Multiplier for 90% confidence level?", ""),
-                                  textInput("question2", "What is z∗  Multiplier for 95% confidence level?", ""),
-                                  textInput("question3", "What is z∗  Multiplier for 99% confidence level?", ""),
-                                  selectInput("question4", "Increasing the confidence level makes the confidence interval wider.",
-                                              c("True" = "y",
-                                                "False" = "n",
-                                                " " = "null"),selected = "null")
+                                  h4("What is z∗  Multiplier for 90% confidence level?",style="font-size:90%"),
+                                  div(style="display:inline-block",textInput("question1", " ", width='2cm',"")),
+                                  div(style="display:inline-block",htmlOutput('pic1')),
+                                  h4("What is z∗  Multiplier for 95% confidence level?",style="font-size:90%"),
+                                  div(style="display:inline-block",textInput("question2", " ", width='2cm',"")),
+                                  div(style="display:inline-block",htmlOutput('pic2')),
+                                  h4("What is z∗  Multiplier for 99% confidence level?",style="font-size:90%"),
+                                  div(style="display:inline-block",textInput("question3", " ", width='2cm',"")),
+                                  div(style="display:inline-block",htmlOutput('pic3')),
+                                  h4("Increasing the confidence level makes the confidence interval wider.",style="font-size:90%"),
+                                  div(style="display:inline-block",selectInput("question4", " ",
+                                                       c("True" = "y",
+                                                         "False" = "n",
+                                                         " " = "null"),width='2cm',selected = "null")),
+                                  div(style="display:inline-block",htmlOutput('pic4'))
                                   #textInput("question4", "Increasing the confidence level makes confidence interval getting larger? (YES or NO)", "input 'YES' or 'NO'"),
                                   # br(),
                                   # actionButton("submit", "Submit Answers")
@@ -163,14 +194,13 @@ dashboardPage(skin="blue",
                                 h3("Feedback: "),
                                 textOutput("feedback")
                                 
+                                
                               )
                             )
                           )
                   ),
                   tabItem(tabName = "popdiff",
-                          div(style="display: inline-block;vertical-align:top;",
-                              tags$a(href='https://shinyapps.science.psu.edu/',tags$img(src='homebut.PNG', width = 15))
-                          ),
+                          
                           titlePanel("Tests for Differences Between 2016 SAT Writing Score by Genders"),
                           sidebarLayout(
                             sidebarPanel(
@@ -256,8 +286,7 @@ dashboardPage(skin="blue",
                   
                           
                   ),
-                  
-                  
+              
                   
                   tabItem(tabName = "table",
                           fluidRow(

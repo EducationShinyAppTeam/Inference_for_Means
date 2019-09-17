@@ -11,6 +11,9 @@ shinyServer(function(input, output,session) {
   observeEvent(input$explore, {
     updateTabItems(session, "tabs", "2016")
   })
+  observeEvent(input$pre, {
+    updateTabItems(session, "tabs", "pre")
+  })
   output$design = renderUI({
     if(input$designcheckbox)
     {
@@ -107,6 +110,19 @@ shinyServer(function(input, output,session) {
     colors[ as.character(covers) ]
   })
   
+  # text messages
+  output$CoverageRate <- renderText({
+    validate(
+      need(is.numeric(input$nsamp),
+           message = "Please input samle size")
+    )
+    
+    paste(sum(Intervals()$cover), "of these",
+          nrow(Intervals()), "intervals cover the parameter value. And coverage rate is ",
+          round(100 *  sum(Intervals()$cover)/ nrow(Intervals()), 2),
+          "% (",  rate$total, " samples)")
+  })
+  
   #print the CIplot
   output$CIplot <- renderPlot({
     validate(
@@ -170,18 +186,7 @@ shinyServer(function(input, output,session) {
                 { rate$cover <- sum(Intervals()$cover); rate$total <- nrow(Intervals()) }
   )
   
-  # text messages
-  output$CoverageRate <- renderText({
-    validate(
-      need(is.numeric(input$nsamp),
-           message = "Please input samle size")
-    )
-    
-    paste(sum(Intervals()$cover), "of these",
-          nrow(Intervals()), "intervals cover the parameter value. And coverage rate is ",
-          round(100 *  sum(Intervals()$cover)/ nrow(Intervals()), 2),
-          "% (",  rate$total, " samples)")
-  })
+
   ############################################################
   ############################################################
   
@@ -222,13 +227,60 @@ shinyServer(function(input, output,session) {
     #   )
     #   paste("All correct. Great Job!")
     # })
-    validate(need(input$question1 != '' & input$question2 != '' & input$question3 != '' &input$question4 != '','Please answer all questions.'))
-    if((input$question1 == 1.645 || input$question1 == 1.65 || input$question1 == 1.6 || input$question1 == 2)
-       &(input$question2 == '1.960' || input$question2 == 1.96 || input$question2 == 2.0)
-       &(input$question3 == '2.576' || input$question3 == 2.58 || input$question3 == 2.6 || input$question3 == 3)
+    validate(need(!is.null(input$question1) & !is.null(input$question2) & !is.null(input$question3) & !is.null(input$question4),'Please answer all questions.'))
+    if((input$question1 == 1.645 | input$question1 == 1.65 | input$question1 == 1.6 | input$question1 == 2)
+       &(input$question2 == 1.960 | input$question2 == 1.96 | input$question2 == 2.0)
+       &(input$question3 == 2.576 | input$question3 == 2.58 | input$question3 == 2.6 | input$question3 == 3)
        &(input$question4 == 'y')){
       cat('All correct. Great Job!')
     }
+   
+  #Render pic1
+    if (input$question1!=''){
+  output$pic1 = renderUI({
+        
+        if(input$question1 == 1.645 || input$question1 == 1.65 || input$question1 == 1.6 || input$question1 == 2){
+          img(src = "check.png", width = 25)
+        }
+        else{
+          img(src = "cross.png", width = 25)
+        }
+  })}
+  
+  #Render pic2
+    if (input$question2!=''){
+  output$pic2 = renderUI({
+        if(input$question2 == 1.960 || input$question2 == 1.96 || input$question2 == 2.0){
+          img(src = "check.png", width = 25)
+        }
+        else{
+          img(src = "cross.png", width = 25)
+        }
+  })}
+  
+  #Render pic3
+    if (input$question3!=''){
+  output$pic3 = renderUI({
+        if(input$question3 == 2.576 || input$question3 == 2.58 || input$question3 == 2.6 || input$question3 == 3){
+          img(src = "check.png", width = 25)
+        }
+        else{
+          img(src = "cross.png", width = 25)
+        }
+  })}
+  
+  
+  #Render pic4
+   if (input$question4!='null'){
+  output$pic4 = renderUI({
+       
+        if(input$question4 == 'y'){
+          img(src = "check.png", width = 25)
+        }
+        else{
+          img(src = "cross.png", width = 25)
+        }
+  })}
   })
   
   ####################################################################
@@ -444,28 +496,13 @@ shinyServer(function(input, output,session) {
     if(input$decisioncheckbox)
     {
       if(abs(zstatistic()) <= zstandard()){
-        paste("Since it is observed that |z| = ",abs(round(zstatistic(),3))," is less than z* score = ",round(zstandard(),3),", the null hypothesis provides a reasonable explanation of the data so we can NOT conclude that males and females have a different average  SAT Writing score when student's are chosen by the researcher's sampling procedure.")
+        paste("Since it is observed that |z| = ",abs(round(zstatistic(),3))," is less than z* score = ",round(zstandard(),3),", and its p-value = ",round(pvalue(),3)," is larger than ",round(2*dalpha(),3),", the null hypothesis provides a reasonable explanation of the data so we can NOT conclude that males and females have a different average  SAT Writing score when student's are chosen by the researcher's sampling procedure.")
         
       }else{
-        paste("Since it is observed that |z| = ",abs(round(zstatistic(),3))," is larger than z* score = ",round(zstandard(),3),", the null hypothesis is not a reasonable explanation of the data so we have evidence that there is a difference between the male and female average SAT Writing score when students are chosen by the researcher's sampling procedure.")
+        paste("Since it is observed that |z| = ",abs(round(zstatistic(),3))," is larger than z* score = ",round(zstandard(),3),", and its p-value = ",round(pvalue(),3)," is less than ",round(2*dalpha(),3),", the null hypothesis is not a reasonable explanation of the data so we have evidence that there is a difference between the male and female average SAT Writing score when students are chosen by the researcher's sampling procedure.")
       }
     }
       
-  })
-  
-  output$decisionP = renderText({
-    validate(
-      need(is.numeric(input$nSamp),
-           message = "Please input samle size")
-    )
-    if(input$decisioncheckbox)
-    {
-      if(pvalue() >= (2*dalpha())){
-        paste("Since it is observed that p-value = ",round(pvalue(),3)," is larger than ",round(2*dalpha(),3),", the null hypothesis provides a reasonable explanation of the data so we can NOT conclude that males and females have a different average  SAT Writing score when student's are chosen by the researcher's sampling procedure.")
-      }else{
-        paste("Since it is observed that p-value = ",round(pvalue(),3)," is less than ",round(2*dalpha(),3),", the null hypothesis is not a reasonable explanation of the data so we have evidence that there is a difference between the male and female average SAT Writing score when students are chosen by the researcher's sampling procedure.")
-      }
-    }
   })
   
 })

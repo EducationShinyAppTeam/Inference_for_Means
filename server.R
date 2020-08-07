@@ -2,45 +2,49 @@ library(shiny)
 library(ggplot2)
 library(mosaic)
 library(truncnorm)
+# This is needed to simulate SAT values
 library(scales)
 
-# Define server logic required to draw a histogram
+
 shinyServer(function(input, output,session) {
-  #Explore Button
+  
+  # Upload this palette for the Z* Multiplier plot
+  psuPalette <- c("#1E407C","#BC204B","#3EA39E","#E98300",
+                  "#999999","#AC8DCE","#F2665E","#99CC00")
+  # "GO" Button in the "Overview" part
   observeEvent(input$go, {
     updateTabItems(session, "tabs", "Explore")
   })
   
-  #population mean plot with true mean
+  # This is "SAT Math 2019" part
+  ## population mean plot with true mean
   output$popMean  = renderPlot({
-    
-    test <- 
-    read.table(textConnection("score precentage
+    test <- read.table(textConnection("score precentage
                   200-290 0.733
                   300-390 12.892
                   400-490 26.693
                   500-590 32.984
                   600-690 17.083
                   700-800 9.616"),
-               header=TRUE,
-               stringsAsFactors=FALSE)
+               header = TRUE,
+               stringsAsFactors = FALSE)
     midval <- sapply(strsplit(test$score,"-"), function(x) mean(as.numeric(x)))
     df <- data.frame(X = c(rep(midval,test$precentage)))
     ggplot(df, aes(x = X)) + 
       geom_histogram(
         breaks = seq(200, 800, by = 100), 
         aes(y = ..density..),
-        color="#0000b2",
-        fill="#7f7fff") + 
+        fill = "skyblue",
+        col = "black") + 
       stat_function(
-        fun=dnorm,
+        fun = dnorm,
         xlim = c(200,800), 
         args = list(mean = 528, sd = 117), 
         size = 1)+
       geom_vline(xintercept = 528, color = "forestgreen", size = 1.5)+
       labs(
-        title = paste0("Population"),
-        x ="SAT Math Scores")+
+        title = paste0("Population Histogram"),
+        x = "SAT Math Scores")+
       scale_x_continuous(breaks = c(200, 300, 400, 500, 600, 700, 800))+
       scale_y_continuous(labels = percent_format()) +
       theme_bw() +
@@ -50,20 +54,17 @@ shinyServer(function(input, output,session) {
         axis.title=element_text(size = 16))
   })
   
-  
-  
-  #Calculating alpha by the confidence level input
+  ## Calculating alpha by the confidence level input
   alpha <- reactive({
-    (1 - input$level) / 2
+    (1 - (input$level/100))/ 2
   })
   
-  #Updating Sample Size
+  ## Updating Sample Size
   N <- reactive({
     as.integer(input$nsamp)
   })
   
-  
-  #generate 50 new sample
+  ## generate 50 new sample
   Data <- reactive({
     input$new
     data.frame(
@@ -73,10 +74,9 @@ shinyServer(function(input, output,session) {
             list(a = 200, b = 800, mean = 528, sd = 117)))
     ) %>%
       mutate(idx = rep(1:50, each = input$nsamp))
-    
   })
   
-  #calculate the interval
+  ## calculate the interval
   Intervals <- reactive({
     Data() %>%
       group_by(idx) %>%
@@ -84,12 +84,12 @@ shinyServer(function(input, output,session) {
         sampleMean = mean(x),
         lowerbound = sampleMean + qnorm(alpha()) * 117 / sqrt(N()),
         upperbound = sampleMean - qnorm(alpha()) * 117 / sqrt(N()),
-        cover = (lowerbound < 528) & (528 < upperbound) ) %>%
+        cover = (lowerbound < 528) & (528 < upperbound),
+        .groups = 'drop') %>%
       ungroup()
   })
   
-  
-  #default as all the samples are selected
+  ## default as all the samples are selected
   selected_sample <- 50
   selectedSample <- reactive({
     if (! is.null(input$plot_click)) {
@@ -99,19 +99,17 @@ shinyServer(function(input, output,session) {
     }
     selected_sample
   })
-  
   OneSample <- reactive({
     Data() %>%
       filter( idx == selectedSample() )
   })
-  
   OneSampleColor <- reactive({
-    colors <- c("TRUE" = "navy", "FALSE" = "red")
+    colors <- c("TRUE" = "skyblue1", "FALSE" = "lightcoral")
     covers <- (Intervals() %>% filter(idx == selectedSample()) )$cover
     colors[ as.character(covers) ]
   })
   
-  # text messages
+  ## text messages
   output$CoverageRate <- renderText({
     validate(
       need(is.numeric(input$nsamp),
@@ -124,7 +122,7 @@ shinyServer(function(input, output,session) {
           "% (",  rate$total, " samples)")
   })
   
-  #print the CIplot
+  ## print the CIplot
   output$CIplot <- renderPlot({
     validate(
       need(is.numeric(input$nsamp),
@@ -139,7 +137,7 @@ shinyServer(function(input, output,session) {
     ggplot(data = Intervals()) +
       geom_pointrange(
         aes(
-          x=idx,
+          x = idx,
           ymin = lowerbound,
           ymax = upperbound,
           y = sampleMean, 
@@ -156,13 +154,13 @@ shinyServer(function(input, output,session) {
         values = c("TRUE" = 1.5, "FALSE" = .7), 
         guide = FALSE) +
       scale_color_manual(
-        values = c("TRUE" = "navy", "FALSE" = "red"), 
+        values = c("TRUE" = "dodgerblue3", "FALSE" = "red"), 
         guide = FALSE) +
       scale_alpha_manual(
         values = c("TRUE" = 1, "FALSE" = .5), 
         guide = FALSE) +
       lims(y = c(300, 700)) +
-      labs(title = paste0(100 * input$level, "% Confidence Intervals for the mean"),
+      labs(title = paste0(input$level, "% Confidence Intervals for the Mean"),
            x = "50 samples are generated every time",y="True Mean in Green Color") +
       theme_bw() +
       theme(
@@ -171,7 +169,8 @@ shinyServer(function(input, output,session) {
         axis.title=element_text(size = 16))
   })
   
-  output$sampMean<- renderPlot({
+  ## This is the sample mean plot
+  output$sampMean <- renderPlot({
     validate(
       need(is.numeric(input$nsamp),
            message = "Please input samle size")
@@ -181,38 +180,38 @@ shinyServer(function(input, output,session) {
            message = "Please input samle size larger than 30")
     )
     ggplot(data = OneSample()) +
-      geom_histogram(aes(x = x), bins = 15, fill = OneSampleColor(), alpha=0.5) +
+      geom_histogram(aes(x = x),
+                     bins = 15,
+                     fill = OneSampleColor(),
+                     col = "black") +
       geom_vline(
-        xintercept = mean(OneSample()$x, color = "navy"),
-        size = 1, 
-        alpha = 0.7) +
+        xintercept = mean(OneSample()$x, color = "dodgerblue1"),
+        size = 1,
+        alpha = 0.5) +
       geom_vline(xintercept = 528, color = "forestgreen", size = 1) +
-      labs(title = paste("Sample (mean = ",
-                         round(mean(OneSample()$x), 2), ", s = ",
-                         round(sd(OneSample()$x), 2), ")"),
+      labs(title = paste("Sample Histogram"),
            x = "SAT Math Scores") +
       theme_bw() +
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
-        axis.title=element_text(size = 16))
+        axis.title = element_text(size = 16))
   })
   
+  # This is "Finding the Z* Multiplier" Part
   rate <- reactiveValues(cover = 0, total = 0)
   observeEvent(input$more, {
     rate$cover <- sum(Intervals()$cover)
     rate$total <- nrow(Intervals())
   })
   
-  
   observeEvent(c( input$A, input$B, input$n, input$level),
     { rate$cover <- sum(Intervals()$cover); rate$total <- nrow(Intervals()) }
   )
   
-  
-  #Calculating alpha
+  ## Calculating alpha
   zalpha <- reactive({
-    (1 - input$zlevel) / 2
+    (1 - (input$zlevel/100)) / 2
   })
   
   zlowerbound <- reactive({
@@ -223,91 +222,103 @@ shinyServer(function(input, output,session) {
     -qnorm(zalpha())
   })
   
-  
   output$zplot = renderPlot({
     
-    # draw the normal curve
+    ## draw the normal curve
     curve(
       dnorm(x, mean = 0, sd = 1),
-      xlim=c(-3,3),
+      xlim = c(-3,3),
       xaxt = "n", 
-      main="Normal Distribution Plot (Mean = 0, StDev = 1)")
-    cord.x <- c(zlowerbound(),seq(zlowerbound(),zupperbound(),0.01),zupperbound())
-    cord.y <- c(0,dnorm(seq(zlowerbound(),zupperbound(),0.01)),0)
+      main = "Normal Distribution Plot (Mean = 0, StDev = 1)",
+      cex.lab = 1.5,
+      cex.main = 2,
+      cex.axis = 1.2)
+    cord.x <- c(zlowerbound(), seq(zlowerbound(), zupperbound(), 0.01), zupperbound())
+    cord.y <- c(0, dnorm(seq(zlowerbound(), zupperbound(), 0.01)), 0)
     
-    polygon(cord.x, cord.y, col='skyblue')
-    axis(side=1,at=round(c(zlowerbound(),zupperbound()),3))
-    
+    polygon(cord.x, cord.y, col = psuPalette[6])
+    axis(side = 1, at = round(c(zlowerbound(), zupperbound()), 3), cex.axis = 1.2)
   })
   
   output$feedback <- renderPrint({
     validate(
       need(
-        !is.null(input$question1) & !is.null(input$question2) &
-          !is.null(input$question3) & !is.null(input$question4),
-        'Please answer all questions.'))
+        !is.na(input$question1) & !is.na(input$question2) &
+          !is.na(input$question3) & input$question4 != "select",
+        message = 'Please answer all questions'),
+      errorClass = "temp")
     if(
       (input$question1 == 1.645 | input$question1 == 1.65 | 
-       input$question1 == 1.6 | input$question1 == 2)
-       &(input$question2 == 1.960 | input$question2 == 1.96 | 
-         input$question2 == 2.0)
+       input$question1 == 1.64)
+       &(input$question2 == 1.960)
        &(input$question3 == 2.576 | input$question3 == 2.58 | 
-         input$question3 == 2.6 | input$question3 == 3)
+         input$question3 == 2.6)
        &(input$question4 == 'y')){
       cat('All correct. Great Job!')
     }
     
-    #Render pic1
-    if (input$question1!=''){
+    ## Render pic1
+    if (input$question1 != ''){
       output$pic1 = renderUI({
-        
         if(input$question1 == 1.645 || input$question1 == 1.65 ||
-           input$question1 == 1.6 || input$question1 == 2){
+           input$question1 == 1.64 ){
           img(src = "check.png", width = 25)
         }
-        
+        else if(input$question1 == -1.645 || input$question1 == -1.65 ||
+                input$question1 == -1.64  )
+        {p("That is the lower critical value, so the multiplier is 1.645")}
+        else{
+          img(src = "cross.png", width = 25)
+        }
       })}
     
-    #Render pic2
-    if (input$question2!=''){
+    ## Render pic2
+    if (input$question2 != ''){
       output$pic2 = renderUI({
-        if(input$question2 == 1.960 || input$question2 == 1.96 ||
-           input$question2 == 2.0){
+        if(input$question2 == 1.960){
           img(src = "check.png", width = 25)
         }
-        
+        else if(input$question2 == -1.960)
+        {p("That is the lower critical value, so the multiplier is 1.96")}
+        else{
+          img(src = "cross.png", width = 25)
+        }
       })}
     
-    #Render pic3
-    if (input$question3!=''){
+    ## Render pic3
+    if (input$question3 != ''){
       output$pic3 = renderUI({
         if(input$question3 == 2.576 || input$question3 == 2.58 || 
-           input$question3 == 2.6 || input$question3 == 3){
+           input$question3 == 2.6){
           img(src = "check.png", width = 25)
         }
-        
+        else if(input$question3 == -2.576|| input$question3 == -2.58 || 
+                input$question3 == -2.6)
+          {p("That is the lower critical value, so the multiplier is 2.576")}
+        else{
+          img(src = "cross.png", width = 25)
+        }
       })}
     
-    
-    #Render pic4
-    if (input$question4!='null'){
+    ## Render pic4
+    if (input$question4 != "select"){
       output$pic4 = renderUI({
-        
         if(input$question4 == 'y'){
           img(src = "check.png", width = 25)
         }
-        
+        else{
+          img(src = "cross.png", width = 25)
+        }
       })}
   })
   
-
-  
-  #Calculating alpha by the confidence level input
+  # This is "Difference of Means" part
+  ## Calculating alpha by the confidence level input
   dalpha <- reactive({
-    (1 - input$dlevel) / 2
+    (1 - (input$dlevel/100)) / 2
   })
   
-  #Updating Sample Size
+  ## Updating Sample Size
   maleN <- reactive({
     as.integer(input$nSamp)
   })
@@ -318,10 +329,9 @@ shinyServer(function(input, output,session) {
   
   standardError <- reactive({
     sqrt(118^2/(maleN())+113^2/(femaleN()))
-    
   })
   
-  #population mean plot with true diffmean
+  ## population mean plot with true diffmean
   output$dpopMean  = renderPlot({
     maledata <- read.table(textConnection("score precentage
                                       200-290 0
@@ -330,9 +340,9 @@ shinyServer(function(input, output,session) {
                                       500-590 31
                                       600-690 22
                                       700-800 7"),
-                           header=TRUE,
-                           stringsAsFactors=FALSE)
-    malemid <- sapply(strsplit(maledata$score,"-"),
+                           header = TRUE,
+                           stringsAsFactors = FALSE)
+    malemid <- sapply(strsplit(maledata$score, "-"),
                       function(x) mean(as.numeric(x)))
     maledf <- data.frame(S = c(rep(malemid,maledata$precentage)))
     
@@ -343,52 +353,52 @@ shinyServer(function(input, output,session) {
                                           500-590 33
                                           600-690 22
                                           700-800 6"),
-                             header=TRUE,
-                             stringsAsFactors=FALSE)
-    femalemid <- sapply(strsplit(femaledata$score,"-"),
+                             header = TRUE,
+                             stringsAsFactors = FALSE)
+    femalemid <- sapply(strsplit(femaledata$score, "-"),
                         function(x) mean(as.numeric(x)))
-    femaledf <- data.frame(S = c(rep(femalemid,femaledata$precentage)))
+    femaledf <- data.frame(S = c(rep(femalemid, femaledata$precentage)))
    
-    
-    # Now, combine your two dataframes into one. First make a new column in each.
+    ## Now, combine your two dataframes into one. First make a new column in each.
     maledf$Gender <- 'Male'
     femaledf$Gender <- 'Female'
     
-    # and combine into your new data frame
+    ## and combine into your new data frame
     genderdf <- rbind(femaledf, maledf)
     
-    # make plot
-    ggplot(genderdf, aes(x=S, fill = Gender))+
+    ## make plot
+    ggplot(genderdf, aes(x = S, fill = Gender))+
       geom_histogram(
-        alpha = 0.3,
-        breaks=seq(200, 800, by = 100), 
+        alpha = 0.5,
+        breaks = seq(200, 800, by = 100), 
         aes(y = ..density..), 
-        position = 'identity')+
+        position = 'identity',
+        col = "black") +
       stat_function(
-        fun=dnorm, 
-        color="blue",
+        inherit.aes = FALSE,
+        fun = dnorm, 
+        color = "dodgerblue",
         xlim = c(200,800), 
-        args=list(mean=475, sd=118), 
-        size = 0.8)+
+        args = list(mean = 529, sd = 118), 
+        size = 0.8) +
       stat_function(
-        fun=dnorm, 
-        color="#FF69B4",
-        xlim = c(200,800), 
-        args=list(mean=487, sd=113),
-        size = 0.8)+
-      geom_vline(xintercept =475, color = "#4682B4", size = 0.9)+
-      geom_vline(xintercept =487, color = "#FF1493", size = 0.9)+
+        inherit.aes = FALSE,
+        fun = dnorm, 
+        color = "hotpink",
+        xlim = c(200, 800), 
+        args = list(mean = 534, sd = 113),
+        size = 0.8) +
+      geom_vline(xintercept = 529, color = "dodgerblue", size = 0.9) +
+      geom_vline(xintercept = 534, color = "hotpink", size = 0.9) +
       labs(
-        title = paste0("population(male-female) = -12, σ(x(male)-x(female)) = ",
-                       round(sqrt(113^2+118^2),3)),
+        title = paste0("Population Histogram for SAT ERW scores"),
         x ="true mean in blue and pink color")+
-      scale_x_continuous(breaks=c(200,300,400,480,600,700,800)) +
+      scale_x_continuous(breaks = c(200,300,400,480,600,700,800)) +
       theme_bw() +
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
-        axis.title=element_text(size = 16))
-    
+        axis.title = element_text(size = 16))
   })
   
   MaleS <- reactive({
@@ -405,61 +415,45 @@ shinyServer(function(input, output,session) {
     mean(MaleS()) - mean(FemaleS())
   })
   
-  output$sampleDiff  = renderPlot({
+  output$sampleDiff = renderPlot({
     validate(
       need(is.numeric(input$nSamp),
            message = "Please input samle size")
     )
     input$newSample
-    # generate new sample
+    
+    ## generate new sample
     malesample <- data.frame(sampleGen = MaleS())
     femalesample <- data.frame(sampleGen = FemaleS())
     
-    # Now, combine your two dataframes into one.  
-    # First make a new column in each that will be a variable to identify where 
-    # they came from later.
+    ## Now, combine your two dataframes into one.  
+    ## First make a new column in each that will be a variable to identify where 
+    ## they came from later.
     malesample$Gender <- 'Male'
     femalesample$Gender <- 'Female'
     
-    # and combine into your new data frame 
+    ## and combine into your new data frame 
     sampleTWO <- rbind(femalesample, malesample)
     ggplot(sampleTWO, aes(sampleGen, fill = Gender)) + 
-      geom_density(alpha = 0.2)+
-      geom_vline(xintercept = mean(MaleS()), color = "#4682B4", size = 0.9)+
-      geom_vline(xintercept = mean(FemaleS()), color = "#FF1493", size = 0.9)+
+      geom_density(alpha = 0.5)+
+      geom_vline(xintercept = mean(MaleS()), color = "dodgerblue", size = 0.9)+
+      geom_vline(xintercept = mean(FemaleS()), color = "hotpink", size = 0.9)+
       labs(
-        title = paste0("xbar(male-female) = ", round(Diff(),2),
-        ",σ(xbar(male)-xbar(female)) = ", round(standardError(),3)),
-        x ="sample mean in blue and pink color") +
-      scale_x_continuous(breaks=c(200,300,400,480,600,700,800)) +
+        title = paste("Sample Density Graph"),
+        x = "sample mean in blue and pink color") +
+      scale_x_continuous(breaks = c(200,300,400,480,600,700,800)) +
       theme_bw() +
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
-        axis.title=element_text(size = 16))
-    
+        axis.title = element_text(size = 16))
   })
-  
   
   dlowerbound <- reactive({
     Diff() + qnorm(dalpha()) * standardError()
   })
   dupperbound <- reactive({
     Diff() - qnorm(dalpha()) * standardError()
-  })
-  
-  output$CItable = renderTable({
-    validate(
-      need(is.numeric(input$nSamp),
-           message = "Please input samle size")
-    )
-    if(input$CIcheckbox)
-    {
-      ctable = matrix(c(dlowerbound(),dupperbound()),nrow=1)
-      colnames(ctable) = c("Lower bound","Upper bound")
-      #rownames(ctable) = paste((input$dlevel),"% CI",sep="")
-      ctable
-    }
   })
   
   pvalue <- reactive({
@@ -471,42 +465,27 @@ shinyServer(function(input, output,session) {
     
   })
   
-  output$samplingtable = renderTable({
+  output$CTtable = renderTable({
     validate(
       need(is.numeric(input$nSamp),
            message = "Please input samle size")
     )
-    
-    ctable = matrix(c(mean(MaleS()), mean(FemaleS())),nrow=1)  
-    #ctable = matrix(c(mean(MaleS()),sd(MaleS()),
-    # mean(FemaleS()),sd(FemaleS())),nrow=2)
-    colnames(ctable) = c("Male","Female")
-    #rownames(ctable) = c("sample mean","sample sd")
-    ctable
-  })
-  
-  output$Diffinfo = renderUI({
-    validate(
-      need(is.numeric(input$nSamp),
-           message = "")
-    )
-    paste("The difference between male and female sample (male minus female) is ", 
-          round(Diff(),2))
-  })
-  
-  output$testtable = renderTable({
-    validate(
-      need(is.numeric(input$nSamp),
-           message = "Please input samle size")
-    )
-    if(input$testcheckbox)
+    if(input$CTcheckbox)
     {
-      ctable = matrix(c(zstatistic(),pvalue()),nrow=1)
-      colnames(ctable) = c("z-statistic","p-value")
+      ctable = matrix(c(dlowerbound(),dupperbound(),zstatistic(), pvalue()),nrow=1)
+      colnames(ctable) = c("Lower bound","Upper bound","z-statistic", "p-value")
       ctable
     }
   })
   
+  
+  output$sampInfor1 = renderUI({
+    paste("Sample means(diff) = ", round(Diff(),2))
+  })
+  output$sampInfor2 = renderUI({
+    paste("Sample standard deviation for the difference in means ", 
+          round(standardError(),3))
+  })
   zstandard <- reactive({
     -qnorm(dalpha())
   })
@@ -519,8 +498,8 @@ shinyServer(function(input, output,session) {
     if(input$decisioncheckbox)
     {
       if(abs(zstatistic()) <= zstandard()){
-        paste("Since it is observed that |z| = ",abs(round(zstatistic(),3))," 
-              is less than z* score = ", round(zstandard(),3),", and its p-value = ",
+        paste("Since it is observed that |z| = ", abs(round(zstatistic(),3))," 
+              is less than Z* score = ", round(zstandard(),3),", and its p-value = ",
               round(pvalue(),3)," is larger than ",round(2*dalpha(),3),", 
               the null hypothesis provides a reasonable explanation of the data
               so we can NOT conclude that males and females have a different average 
@@ -528,8 +507,8 @@ shinyServer(function(input, output,session) {
               procedure.")
         
       }else{
-        paste("Since it is observed that |z| = ",abs(round(zstatistic(),3))," 
-              is larger than z* score = ", round(zstandard(),3),
+        paste("Since it is observed that |z| = ", abs(round(zstatistic(),3))," 
+              is larger than Z* score = ", round(zstandard(),3),
               ", and its p-value = ",round(pvalue(),3)," is less than ",
               round(2*dalpha(),3),", the null hypothesis is not a reasonable 
               explanation of the data so we have evidence that there is a difference
@@ -541,6 +520,3 @@ shinyServer(function(input, output,session) {
   })
   
 })
-
-
-

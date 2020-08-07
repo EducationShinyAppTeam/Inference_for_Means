@@ -12,8 +12,7 @@ APP_DESCP  <<- paste(
 )
 # End App Meta Data------------------------------------------------------------
 
-
-dashboardPage(skin="purple",
+dashboardPage(skin = "purple",
   # Title
   dashboardHeader(
     title="Inference for Means",
@@ -32,7 +31,7 @@ dashboardPage(skin="purple",
       menuItem("Overview", tabName = "Overview", icon = icon("tachometer-alt")),
       menuItem("SAT Math 2019", tabName = "2019", icon = icon("wpexplorer")),
       menuItem("Difference of Means", tabName = "popdiff", icon = icon("cogs")),
-      menuItem("Finding the Z* Multiplier", tabName = "findz", icon = icon("gamepad")),
+      menuItem("Finding the \\(Z^*\\) Multiplier", tabName = "findz", icon = icon("gamepad")),
       menuItem("References", tabName = "References", icon = icon("leanpub"))
    ),
     tags$div(
@@ -49,6 +48,8 @@ dashboardPage(skin="purple",
          type = "text/css",
          href = "https://educationshinyappteam.github.io/Style_Guide/theme/boast.css")
      ),
+    
+    # This is "Overview" part
     tabItems(
       tabItem(
         tabName = "Overview",
@@ -75,67 +76,67 @@ dashboardPage(skin="purple",
                 size and/or the confidence level to explore the behavior of a 
                 z-test for differences between males and females on the SAT ERW
                 scores based on sample data."),
-        tags$li("The Z* multiplier page allows the user to find critical values 
+        tags$li("The \\(Z^*\\) multiplier page allows the user to find critical values 
                 (multiplier numbers) needed in making a confidence interval. 
-                Complete a short quiz to show you have mastered the concept."),      
+                Complete a short quiz to show you have mastered the concept.")),      
         div(style = "text-align: center",
           bsButton(
             inputId = "go", 
             label = "GO!",
             icon = icon("bolt"),
-            size = "large"))),
+            size = "large")),
         br(),
         br(),
         h2("Acknowledgements"),
         p("This app was developed and coded by Yingjie (Chelsea) Wang. The updated
           version was improved by Xuefei Wang. Information about confidence interval
-          graph was drawn from Randall Pruim's shiny app.",
-          br(),
-          br(),
-          "These data are about college-bound high school graduates in the year 
-          of 2019 who participated in the SAT Program. Students are counted only 
-          once, no matter how often they tested, and only their latest scores and
-          most recent SAT Questionnaire responses are summarized."),
+          graph was drawn from Randall Pruim's shiny app."),
         br(),
         br(),
         br(),
-        div(class = "updated", "Last Update: 7/20/2020 by XW.")               
+        div(class = "updated", "Last Update: 7/30/2020 by XW.")               
         ),
                   
-                  
+      # This is "SAT Math 2019" part      
       tabItem(tabName = "2019",
-        h2("Confidence Intervals for 2019 SAT Math Score"),
+        h2("Confidence Intervals for 2019 SAT Math Scores"),
+        box(title = "Context", 
+            status = "primary",
+            collapsible = TRUE,
+            collapsed = FALSE,
+            width = '100%',
+            p("A researcher plans to take a random sample of size n students to
+              do a survey about their experience on the SAT math test. However,
+              she worries that sample results could be biased because the students
+              who agree to participate might be different from those who don't 
+              (this would be an example of non-response bias). The researcher 
+              makes a confidence interval for the SAT math scores of the students
+              in her study and compares it to the mean of 528 for the population
+              of all seniors in the U.S. This app shows how confidence intervals
+              of that type would come out when there is no bias. These data are 
+              about College Bound high school graduates in the year of 2019 who 
+              participated in the SAT Program. Students are counted only once, 
+              no matter how often they tested, and only their latest scores and
+              most recent SAT Questionnaire responses are summarized.")),
         fluidRow(
           column(4,
             wellPanel(
-              h3("Design"),
-              p("A researcher plans to take a random sample of size n students to
-                do a survey about their experience on the SAT math test. However,
-                she worries that sample results could be biased because the students
-                who agree to participate might be different from those who don't 
-                (this would be an example of non-response bias). The researcher 
-                makes a confidence interval for the SAT math scores of the students
-                in her study and compares it to the mean of 528 for the population
-                of all seniors in the U.S. This app shows how confidence intervals
-                of that type would come out when there is no bias."),
-              br(),
               h3("Hypothesis"),
-              h4("Ho: μ = 528"),
+              h4("Ho: \\(\\mu\\) = 528"),
               br(),
               sliderInput(
                 inputId = "level",
                 label = "Confidence Level",
-                min=.50, 
-                max = 0.99, 
-                value = 0.90, 
-                step = 0.01),
+                min = 85, 
+                max = 99, 
+                value = 90, 
+                post = "%"),
               sliderInput(
                 inputId = "nsamp", 
                 label = "Sample Size (n > 30)",
-                min=30,
+                min = 30,
                 max = 500,
-                value = 30,
-                step = 5),
+                value = 30),
               actionButton(
                 inputId = "new", 
                 label = "Generate 50 New Samples",
@@ -145,22 +146,10 @@ dashboardPage(skin="purple",
                 title = "Note",
                 content = paste("By clicking on this button, new 50 sample with",
                     "the size you have input in each sample will be generated."),
-                trigger="hover",
-                placement="bottom")
-              )
-          
-          ),
-          column(4, 
-            plotOutput("popMean", height = "300px"),
-            tags$script(HTML(
-              "$(document).ready(function() {
-              document.getElementById('popMean').setAttribute('aria-label',
-              `This is a bar chart for population mean.`)
-              })"
-            ))
-          ),
-          column(4,
-            plotOutput("sampMean", height = "300px"),
+                trigger = "hover",
+                placement = "bottom")
+            ),
+            plotOutput("sampMean", height = "400px"),
             tags$script(HTML(
               "$(document).ready(function() {
               document.getElementById('sampMean').setAttribute('aria-label',
@@ -168,8 +157,17 @@ dashboardPage(skin="purple",
               })"
             ))
           ),
+          column(8, 
+            plotOutput("popMean", height = "395px"),
+            tags$script(HTML(
+              "$(document).ready(function() {
+              document.getElementById('popMean').setAttribute('aria-label',
+              `This is a bar chart for population mean.`)
+              })"
+            ))
+          ),
           column(8,
-            plotOutput(outputId = "CIplot", height = "450px",click = "plot_click"),
+            plotOutput(outputId = "CIplot", height = "400px", click = "plot_click"),
             tags$script(HTML(
               "$(document).ready(function() {
               document.getElementById('CIplot').setAttribute('aria-label',
@@ -177,105 +175,100 @@ dashboardPage(skin="purple",
               })"
             )),
             textOutput("CoverageRate"),
-            tags$head(tags$style("#CoverageRate{color: green;
+            tags$head(tags$style("#CoverageRate{
                       font-size: 18px;
                       font-style: italic;
                       }"))
           )
         ),
-            bsPopover(
-              id = "sampMean",
-              title = "Sample Histogram",
-              content = paste("This is the histogram plot of the sample you",
-              "selected on Confidence Interval Plot. The green line is the true",
-              "mean of the population and the black line is the mean of the sample."),
-              trigger="hover",
-              placement="bottom"),
-            bsPopover(
-              id = "popMean",
-              title = "Population Bar Graph",
-              content = paste("This is the bar plot based on percentage you input.",
-              "The green line is the true percentage in 2019.",
-              "(μ = 528, σ = 117, N = 2220087)"),
-              trigger="hover",
-              placement="bottom"),
-            bsPopover(
-              id = "CIplot",
-              title = "Confidence Interval Plot",
-              content = paste("The blue lines indicate a confidence interval covers",
-              "the population mean and the red lines indicate that the population",
-              "mean is outside of the confidence interval. Click on an interval to",
-              "show a histogram for the underlying sample."),
-              trigger="hover",
-              placement="top")
-              
+          bsPopover(
+            id = "sampMean",
+            title = "Sample Histogram",
+            content = paste("This is the histogram plot of the sample you",
+            "selected on Confidence Interval Plot. The green line is the true",
+            "mean of the population and the black line is the mean of the sample."),
+            trigger = "hover",
+            placement = "top"),
+          bsPopover(
+            id = "popMean",
+            title = "Population Bar Graph",
+            content = paste("This is the bar plot based on percentage you input.",
+            "The green line is the true percentage in 2019.",
+            "(μ = 528, σ = 117, N = 2220087)"),
+            trigger = "hover",
+            placement = "bottom"),
+          bsPopover(
+            id = "CIplot",
+            title = "Confidence Interval Plot",
+            content = paste("The blue lines indicate a confidence interval covers",
+            "the population mean and the red lines indicate that the population",
+            "mean is outside of the confidence interval. Click on an interval to",
+            "show a histogram for the underlying sample."),
+            trigger = "hover",
+            placement = "top")
       ),
-
+      
+      # This is "Difference for Means" part
       tabItem(
         tabName = "popdiff",
+        h2("Tests for Differences Between 2019 SAT ERW Score by Genders"),
         box(
-          title = h3("Design"), 
+          title = "Context", 
           status = "primary",
           collapsible = TRUE,
           collapsed = FALSE,
           width = '100%',
           p("A researcher wants to sample a group of n male and n female students
-            about their experiences with the SAT ERW test. Although the average SAT
-            ERW score for females is 12 higher than for males, a critic believes her 
-            sampling technique would provide a sample of students with a mean (µ)
-            that did not depend on gender (the null hypothesis). The researcher 
-            uses her samples to conduct a test of that null hypothesis and this 
-            test shows how that test would behave when  the sampling is really 
-            unbiased and the females have a mean that is 12 higher."
-          )
+            about their experiences with the SAT ERW (Evidence-Based Reading and
+            Writing) test. Although the average SAT ERW score for females is 12 
+            higher than for males, a critic believes her sampling technique would 
+            provide a sample of students with a mean (\\(\\mu\\)) that did not 
+            depend on gender (the null hypothesis). The researcher uses her samples
+            to conduct a test of that null hypothesis and this test shows how that
+            test would behave when the sampling is really unbiased and the females
+            have a mean that is 12 higher."),
+          p("Hypothesis: Assume there is no difference between male and female 
+             performance on SAT ERW")
         ),
-        h2("Tests for Differences Between 2019 SAT ERW Score by Genders"),
           fluidRow(
             column(4,
               wellPanel(
-              h3("Hypothesis: "),
-              h4("Assume there is no difference between male and female performance
-                 on SAT ERW"),
-              h4("Ho: μ(male) = μ(female)"),
-              h4("Ha: μ(male) ≠ μ(female)"),
-              wellPanel(
-                h3("Sample mean information:"),
-                tableOutput("samplingtable"),
-                uiOutput("Diffinfo")
-              ),
-              sliderInput(
-                inputId = "dlevel",
-                label = "Confidence Level",
-                min = 0.50, 
-                max = 0.99, 
-                value = 0.90, 
-                step = 0.01),
-              sliderInput(
-                inputId = "nSamp",
-                label = "Sample Size for each of the two groups (n > 30)",
-                min=30,
-                max = 1000,
-                value = 700),
-              br()
+                h3("Population Information"),
+                p("Population mean(diff) = -12, Population standard deviation for
+                  the difference in means = 163.38"),
+                h3("Sample Information"),
+                uiOutput("sampInfor1"),
+                uiOutput("sampInfor2"),
+                br(),
+                sliderInput(
+                  inputId = "dlevel",
+                  label = "Confidence Level",
+                  min = 85, 
+                  max = 99, 
+                  value = 90, 
+                  post = "%"),
+                sliderInput(
+                  inputId = "nSamp",
+                  label = "Sample Size for each of the two groups (n > 30)",
+                  min = 30,
+                  max = 1000,
+                  value = 700),
+                br(),
+                actionButton(
+                  inputId = "newSample", 
+                  label = "Generate New Samples",
+                  icon("retweet"))
               ),
               br(),
               wellPanel(
                 checkboxInput(
-                  inputId = "CIcheckbox",
-                  label = "Show Confidence Interval:", 
+                  inputId = "decisioncheckbox",
+                  label = "Decision about the null hypothesis:", 
                   value = FALSE), 
-                tableOutput(outputId = "CItable")
-              ),
-              wellPanel(
-                checkboxInput(
-                  inputId = "testcheckbox",
-                  label = "Show Test Output:", 
-                  value = FALSE), 
-                tableOutput(outputId = "testtable")
+                textOutput(outputId = "decisionZ")
               )
             ),              
             column(8,
-              wellPanel(
                 plotOutput(outputId = "dpopMean", height = "300px"),
                 tags$script(HTML(
                   "$(document).ready(function() {
@@ -289,8 +282,8 @@ dashboardPage(skin="purple",
                 content = paste("The two histograms show SAT ERW score distribution",
                           "by genders. The pink and blue vertical lines indicate", 
                           "the true means for two groups."),
-                trigger="hover",
-                placement="bottom"),
+                trigger = "hover",
+                placement = "bottom"),
               br(),
               plotOutput(outputId = "sampleDiff", height = "300px"),
               tags$script(HTML(
@@ -299,98 +292,52 @@ dashboardPage(skin="purple",
                   `The two histograms show genereated sample of SAT ERW score
                   by genders..`)
                  })"
-              ))
-              ),
+              )),
               bsPopover(
                 id = "sampleDiff",
                 title = "Sample Histogram",
                 content = paste("The two histograms show genereated sample of SAT",
                           "ERW score by genders. The pink and blue vertical lines", 
                           "indicate the sample means for two groups."),
-                trigger="hover",
-                placement="top"),
-              actionButton(
-                inputId = "newSample", 
-                label = "Generate New Samples",
-                icon("retweet")),
+                trigger = "hover",
+                placement = "top"),
               bsPopover(
                 id = "newSample",
                 title = "Note",
                 content = paste("By clicking on this button, new sample with the",
                           "size you input will be generated on the Sample Histogram."),
-                trigger="hover",
-                placement="right"),
+                trigger = "hover",
+                placement = "right"),
               wellPanel(
                 checkboxInput(
-                  inputId = "decisioncheckbox",
-                  label = "Decision about the null hypothesis:", 
-                  value = FALSE), 
-                textOutput(outputId = "decisionZ")
+                  inputId = "CTcheckbox",
+                  label = "Show Confidence Interval and Test Output", 
+                  value = TRUE), 
+                tableOutput(outputId = "CTtable")
               )
             )
           )
         ),
-      
+      # This is "Find the Z* Mutltiplier" part
       tabItem(
         tabName = "findz",
           h2("Confidence Intervals for a population mean"),
           fluidRow(
             column(4,
+              br(),
               wellPanel(
-              h3("Finding the z∗ Multiplier"),
-              p("The value of the z∗ multiplier is dependent on the level of
+              h3("Finding the \\(Z^*\\) Multiplier"),
+              br(),
+              p("The value of the \\(Z^*\\) multiplier is dependent on the level of
                 confidence."),
+              br(),
               sliderInput(
                 inputId = "zlevel",     
                 label = "Confidence Level",
-                min=.85,
-                max = 0.99,
-                value = 0.90,
-                step = 0.01)),
-              br(),
-              wellPanel(
-                style = "background-color: #A9A9A9;",
-                h3("Quiz"),
-                h4("What is z∗  Multiplier for 90% confidence level?",
-                   style="font-size:90%"),
-                div(style="display:inline-block",
-                    textInput(inputId = "question1", 
-                              label = " ", 
-                              width = '2cm')),
-                div(style="display:inline-block", 
-                    htmlOutput(outputId = 'pic1')),
-                h4("What is z∗  Multiplier for 95% confidence level?",
-                   style="font-size:90%"),
-                div(style="display:inline-block",
-                    textInput(
-                      inputId = "question2", 
-                      label = " ", 
-                      width='2cm',
-                      value = "")),
-                div(style="display:inline-block",
-                    htmlOutput('pic2')),
-                h4("What is z∗  Multiplier for 99% confidence level?",
-                   style="font-size:90%"),
-                div(style="display:inline-block",
-                    textInput(
-                      inputId = "question3",
-                      label = " ",
-                      width='2cm',
-                      value = "")),
-                div(style="display:inline-block",
-                    htmlOutput('pic3')),
-                h4("Increasing the confidence level makes the confidence 
-                   interval wider.",style="font-size:90%"),
-                div(style="display:inline-block",
-                    selectInput(
-                      inputId = "question4", 
-                      label = " ",
-                      choices = c("True" = "y","False" = "n", " " = "null"),
-                      width='2cm',
-                      selected = "null")),
-                div(style="display:inline-block",
-                    htmlOutput('pic4'))
-              )
+                min = 85,
+                max = 99,
+                value = 90,
+                post = "%")),
             ),             
             column(8,
               plotOutput("zplot"),
@@ -404,21 +351,59 @@ dashboardPage(skin="purple",
                 id = "zplot",
                 title = "Z Score Plot",
                 content = paste("This is the confidence interval plot for standard",
-                          "normal distribution. Multiplier Number (z*) is the",
+                          "normal distribution. Multiplier Number \\(Z^*\\) is the",
                           "absolute value of the boundary value. Use the value", 
                           "showed on this graph for following questions."),
-                trigger="hover",
-                placement="bottom"),
-              br(),
-              br(),
-              h3("Feedback: "),
-              textOutput("feedback"),
-              tags$head(
-                tags$style("#feedback{color:green; font-size: 35px;}"))
+                trigger = "hover",
+                placement = "bottom")
             )
-          )
+          ),
+          h3("Quiz"),
+          textOutput("feedback"),
+          p("What is \\(Z^*\\)  Multiplier for 90% confidence level?"),
+          fluidRow(
+            column(2,
+              div(numericInput(inputId = "question1", 
+                            label = "Your answer", 
+                            step = 0.001,
+                            value = ""))),
+            column(10,
+            br(),
+            div(htmlOutput(outputId = 'pic1')))),
+          p("What is \\(Z^*\\)  Multiplier for 95% confidence level?"),
+          fluidRow(
+            column(2,
+              div(numericInput(inputId = "question2",
+                            label = "Your answer",
+                            step = 0.001,
+                            value = ""))),
+            column(10,
+              br(),
+              div(htmlOutput('pic2')))),
+          p("What is \\(Z^*\\)  Multiplier for 99% confidence level?"),
+          fluidRow(
+            column(2,
+              div(numericInput(inputId = "question3",
+                            label = "Your answer",
+                            step = 0.001,
+                            value = ""))),
+            column(10,
+              br(),
+              div(htmlOutput('pic3')))),
+          p("Increasing the confidence level makes the confidence interval wider."),
+          fluidRow(
+            column(2,
+              div(selectInput(
+                  inputId = "question4", 
+                  label = "Your answer",
+                  choices = c("Select an answer" = "select", "True" = "y", "False" = "n"),
+                  selected = "select"))),
+            column(10,
+              br(),
+              div(htmlOutput('pic4'))))
       ),
-                  
+      
+      # This is the "References" part          
       tabItem(
         tabName = "References",
         withMathJax(),

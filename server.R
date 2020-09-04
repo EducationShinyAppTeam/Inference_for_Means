@@ -5,7 +5,6 @@ library(truncnorm)
 # This is needed to simulate SAT values
 library(scales)
 
-
 shinyServer(function(input, output,session) {
   
   # Upload this palette for the Z* Multiplier plot

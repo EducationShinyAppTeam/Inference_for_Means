@@ -4,7 +4,7 @@ library(shinyBS)
 library(boastUtils)
 
 # App Meta Data----------------------------------------------------------------
-APP_TITLE  <<- "[Sample App]"
+APP_TITLE  <<- "Inference for Means"
 APP_DESCP  <<- paste(
   "This app explores the behavior of confidence intervals 
   for a single mean and two sample tests for the difference 

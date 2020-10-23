@@ -112,7 +112,7 @@ shinyServer(function(input, output,session) {
   output$CoverageRate <- renderText({
     validate(
       need(is.numeric(input$nsamp),
-           message = "Please input samle size")
+           message = "Please input sample size")
     )
     
     paste(sum(Intervals()$cover), "of these",

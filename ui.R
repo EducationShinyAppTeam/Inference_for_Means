@@ -137,7 +137,7 @@ dashboardPage(skin = "purple",
                 min = 30,
                 max = 500,
                 value = 30),
-              actionButton(
+              bsButton(
                 inputId = "new", 
                 label = "Generate 50 New Samples",
                 icon = icon("retweet")),

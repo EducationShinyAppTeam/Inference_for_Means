@@ -590,7 +590,7 @@ server <- function(input, output,session) {
     updateTabItems(
       session = session,
       inputId = "pages",
-      selected = "Explore"
+      selected = "2019"
     )
   })
 

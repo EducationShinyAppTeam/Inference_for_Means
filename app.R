@@ -303,8 +303,7 @@ ui <- list(
               )
             )
           ),
-          p("Click on the confidence intervals (on the right) to view the histogram
-            of the sample on the left."),
+          uiOutput("sampleMessage"),
           fluidRow(
             column(
               width = 6,
@@ -315,9 +314,7 @@ ui <- list(
               `This is a bar chart for sample mean.`)
               })"
               )),
-              p("The sample histogram will change colors (red or blue) depending
-                on whether the confidence interval constructed from the sample
-                contains the population mean.")
+              uiOutput("sampleColors")
             ),
             column(
               width = 6,
@@ -620,6 +617,20 @@ server <- function(input, output,session) {
       inputId = "pages",
       selected = "2019"
     )
+  })
+
+  # sample message
+  observeEvent(input$new, {
+    output$sampleMessage <- renderUI({
+      "Click on the confidence intervals (on the right) to view the histogram of
+      the sample on the left."
+    })
+
+    output$sampleColors <- renderUI({
+      "The sample histogram will change colors (red or blue) depending on whether
+      the confidence interval constructed from the sample contains the population
+      mean."
+    })
   })
 
   # This is "SAT Math 2019" part

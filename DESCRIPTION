@@ -1,0 +1,14 @@
+Title: Confidence Interval for One or Two Means
+ShortName: Inference for Means
+Date: 2020-11-02
+Authors@R: c(person("Robert", "Carey", email = "rpc5102@psu.edu",
+  role = c("ctb"), person("Neil", "Hatfield", email = "njh5464@psu.edu",
+  role = c("ctb")))
+Chapter: Statistical Inference
+Description: The app requires students to engage with inference scenarios for a mean (or difference in means) in context. Users will explore the behavior of confidence intervals for a single mean and two sample tests for the difference in means as the level and sample size changes.
+DisplayMode: Normal
+URL: https://psu-eberly.shinyapps.io/Inference_for_Means/
+BugReports: https://github.com/EducationShinyAppTeam/Inference_for_Means
+License: CC BY-NC-SA 4.0
+Tags: simulation
+Type: Shiny

@@ -9,8 +9,8 @@ library(truncnorm) # This is needed to simulate SAT values
 library(scales)
 
 # App Meta Data----------------------------------------------------------------
-APP_TITLE  <<- "Confidence Interval for One or Two Means"
-APP_DESCP  <<- paste(
+APP_TITLE <<- "Confidence Interval for One or Two Means"
+APP_DESCP <<- paste(
   "This app explores the behavior of confidence intervals
   for a single mean and two sample tests for the difference
   in means as the level and sample size changes."
@@ -20,72 +20,54 @@ APP_DESCP  <<- paste(
 # Global constants, functions, and data ----
 
 ## Population plot for the SAT Math scores
-rawSATMath <- read.table(
-  textConnection(
-    object = "score percentage
-              200-290 0.733
-              300-390 12.892
-              400-490 26.693
-              500-590 32.984
-              600-690 17.083
-               700-800 9.616"
-  ),
-  header = TRUE,
-  stringsAsFactors = FALSE
-)
 satMath <- data.frame(
-  score = sapply(strsplit(rawSATMath$score,"-"), function(x) mean(as.numeric(x))),
-  percentage = rawSATMath$percentage
+  scoreGroup = c("200-290", "300-390", "400-490", "500-590", "600-690", "700-800"),
+  midScore = c(245, 345, 445, 545, 645, 750),
+  percentage = c(0.733, 12.892, 26.693, 32.984, 17.083, 9.616)
 )
 
 mathPopPlot <- ggplot(
   data = satMath,
-  mapping = aes(x = score, weight = percentage)) +
+  mapping = aes(x = midScore, weight = percentage)
+) +
   geom_histogram(
     mapping = aes(y = ..density..),
     breaks = seq(200, 800, by = 100),
     fill = "skyblue",
-    col = "black") +
+    col = "black"
+  ) +
   stat_function(
     fun = dnorm,
     xlim = c(200, 800),
     args = list(mean = 528, sd = 117),
-    size = 1 )+
-  geom_vline(xintercept = 528, color = "forestgreen", size = 1.5)+
+    size = 1
+  ) +
+  geom_vline(xintercept = 528, color = "forestgreen", size = 1.5) +
   labs(
     title = "Population Histogram",
     x = "SAT math scores",
-    y = "Density") +
+    y = "Density"
+  ) +
   scale_x_continuous(breaks = c(200, 300, 400, 500, 600, 700, 800)) +
   theme_bw() +
   theme(
     plot.caption = element_text(size = 18),
     text = element_text(size = 18),
-    axis.title=element_text(size = 16))
+    axis.title = element_text(size = 16)
+  )
 
 ## This chunk of codes are for population mean plot with true diff mean
-rawERW <- read.table(
- textConnection(
-   object = "score male female
-            200-290 0 0
-            300-390 11 8
-            400-490 29 30
-            500-590 31 33
-            600-690 22 22
-            700-800 7 6"
- ),
- header = TRUE,
- stringsAsFactors = FALSE
-)
 satERW <- data.frame(
-  score = sapply(strsplit(rawERW$score,"-"), function(x) mean(as.numeric(x))),
-  malePercentage = rawERW$male,
-  femalePercentage = rawERW$female
+  scoreGroup = c("200-290", "300-390", "400-490", "500-590", "600-690", "700-800"),
+  midScore = c(245, 345, 445, 545, 645, 750),
+  malePercentage = c(0, 11, 29, 31, 22, 7),
+  femalePercentage = c(0, 8, 30, 33, 22, 6)
 )
 
 erwPopPlot <- ggplot(
   data = satERW,
-  mapping = aes(x = score))+
+  mapping = aes(x = midScore)
+) +
   geom_histogram(
     mapping = aes(y = ..density.., weight = malePercentage, fill = "male"),
     breaks = seq(200, 800, by = 100),
@@ -102,34 +84,43 @@ erwPopPlot <- ggplot(
     inherit.aes = FALSE,
     fun = dnorm,
     color = "dodgerblue",
-    xlim = c(200,800),
+    xlim = c(200, 800),
     args = list(mean = 529, sd = 118),
-    size = 0.8) +
+    size = 0.8
+  ) +
   stat_function(
     inherit.aes = FALSE,
     fun = dnorm,
     color = "hotpink",
     xlim = c(200, 800),
     args = list(mean = 534, sd = 113),
-    size = 0.8) +
+    size = 0.8
+  ) +
   geom_vline(xintercept = 529, color = "dodgerblue", size = 0.9) +
   geom_vline(xintercept = 534, color = "hotpink", size = 0.9) +
   labs(
     title = "Pop. Histogram of SAT ERW Scores by Sex",
-    x ="ERW score",
-    y = "Density")+
-  scale_x_continuous(breaks = c(200,300,400,480,600,700,800)) +
+    x = "ERW score",
+    y = "Density"
+  ) +
+  scale_x_continuous(breaks = c(200, 300, 400, 480, 600, 700, 800)) +
   theme_bw() +
   theme(
     plot.caption = element_text(size = 18),
     text = element_text(size = 18),
     axis.title = element_text(size = 16),
-    legend.position = "right") +
-  scale_fill_manual(name = "sex",
-                    labels = c("male" = "Male",
-                               "female" = "Female"),
-                    values = c("male" = "dodgerblue",
-                               "female" = "hotpink")
+    legend.position = "right"
+  ) +
+  scale_fill_manual(
+    name = "sex",
+    labels = c(
+      "male" = "Male",
+      "female" = "Female"
+    ),
+    values = c(
+      "male" = "dodgerblue",
+      "female" = "hotpink"
+    )
   )
 
 # Define the UI ----
@@ -138,16 +129,18 @@ ui <- list(
     skin = "purple",
     # Title ----
     dashboardHeader(
-      title="Conf. Intervals for Means",
+      title = "Conf. Intervals for Means",
       titleWidth = 250,
       tags$li(
         class = "dropdown",
-        tags$a(target = "_blank", icon("comments"),
-               href = "https://pennstate.qualtrics.com/jfe/form/SV_7TLIkFtJEJ7fEPz?appName=Inference_for_Means")
+        tags$a(
+          target = "_blank", icon("comments"),
+          href = "https://pennstate.qualtrics.com/jfe/form/SV_7TLIkFtJEJ7fEPz?appName=Inference_for_Means"
+        )
       ),
       tags$li(
         class = "dropdown",
-        tags$a(href='https://shinyapps.science.psu.edu/', icon("home"))
+        tags$a(href = "https://shinyapps.science.psu.edu/", icon("home"))
       )
     ),
     # Sidebar ----
@@ -181,8 +174,7 @@ ui <- list(
             tests the difference between two means by adjusting confidence levels
             and sample size and generating calculation results with explanations.
             The app requires students to engage in the interaction with the
-            scenarios provided in context."
-          ),
+            scenarios provided in context."),
           h2("Instructions"),
           tags$ul(
             tags$li(strong("SAT Math 2019 and Difference of Means Pages")),
@@ -194,10 +186,12 @@ ui <- list(
               tags$li("Click on the generate buttons to draw new samples and for
                       the confidence interval app, click on the center of an
                       interval to show data for that sample."),
-            tags$li(strong("Difference of Means Page: "),
-                    "You can change the sample size and/or the confidence level
+              tags$li(
+                strong("Difference of Means Page: "),
+                "You can change the sample size and/or the confidence level
                     and explore the behavior of a Z-test for differences between
-                    males and females on the SAT ERW scores based on sample data.")
+                    males and females on the SAT ERW scores based on sample data."
+              )
             ),
             br(),
             tags$li(strong("Finding the \\(Z^*\\) Multipler page")),
@@ -237,7 +231,7 @@ ui <- list(
             status = "primary",
             collapsible = TRUE,
             collapsed = FALSE,
-            width = '100%',
+            width = "100%",
             p("A researcher plans to take a random sample of size n students to
               do a survey about their experience on the SAT math test. However,
               she worries that sample results could be biased because the students
@@ -250,8 +244,7 @@ ui <- list(
               about College Bound high school graduates in the year of 2019 who
               participated in the SAT Program. Students are counted only once,
               no matter how often they tested, and only their latest scores and
-              most recent SAT Questionnaire responses are summarized."
-            )
+              most recent SAT Questionnaire responses are summarized.")
           ),
           fluidRow(
             column(
@@ -341,7 +334,7 @@ ui <- list(
             status = "primary",
             collapsible = TRUE,
             collapsed = FALSE,
-            width = '100%',
+            width = "100%",
             p("A researcher wants to sample a group of n male and n female students
               about their experiences with the SAT ERW (Evidence-Based Reading and
               Writing) test. Although the average SAT ERW score for females is 12
@@ -360,10 +353,12 @@ ui <- list(
               wellPanel(
                 h3("Population Information"),
                 p("Subtraction order: male − female"),
-                p("Population difference in means is -12,",
+                p(
+                  "Population difference in means is -12,",
                   br(),
                   "Standard deviation for the difference in population means
-                  is 163.38"),
+                  is 163.38"
+                ),
                 h3("Sample Information"),
                 uiOutput("sampInfor"),
                 br(),
@@ -380,7 +375,8 @@ ui <- list(
                   label = "Sample size for both groups (n > 30)",
                   min = 30,
                   max = 1000,
-                  value = 700),
+                  value = 700
+                ),
                 br(),
                 bsButton(
                   inputId = "newSample",
@@ -487,7 +483,7 @@ ui <- list(
             column(
               width = 10,
               br(),
-              uiOutput(outputId = 'pic1')
+              uiOutput(outputId = "pic1")
             )
           ),
           p("What is \\(Z^*\\)  Multiplier for 95% confidence level?"),
@@ -504,7 +500,7 @@ ui <- list(
             column(
               width = 10,
               br(),
-              uiOutput('pic2')
+              uiOutput("pic2")
             )
           ),
           p("What is \\(Z^*\\)  Multiplier for 99% confidence level?"),
@@ -521,7 +517,7 @@ ui <- list(
             column(
               width = 10,
               br(),
-              uiOutput('pic3')
+              uiOutput("pic3")
             )
           ),
           p("True or False: Increasing the confidence level makes the confidence interval wider."),
@@ -542,7 +538,7 @@ ui <- list(
             column(
               width = 9,
               br(),
-              uiOutput('pic4')
+              uiOutput("pic4")
             )
           )
         ),
@@ -593,8 +589,8 @@ ui <- list(
           ),
           p(
             class = "hangingindent",
-            'Wickham, H., Seidel, D. (2020), scales: Scale Functions for Visualization,
-            R Package. Available from https://CRAN.R-project.org/package=scales'
+            "Wickham, H., Seidel, D. (2020), scales: Scale Functions for Visualization,
+            R Package. Available from https://CRAN.R-project.org/package=scales"
           ),
           p(
             class = "hangingindent",
@@ -609,7 +605,7 @@ ui <- list(
 )
 
 # Define the server ----
-server <- function(input, output,session) {
+server <- function(input, output, session) {
   # Overview's Go button ----
   observeEvent(input$go, {
     updateTabItems(
@@ -635,13 +631,13 @@ server <- function(input, output,session) {
 
   # This is "SAT Math 2019" part
   ## population mean plot with true mean
-  output$popMean  = renderPlot({
+  output$popMean <- renderPlot({
     mathPopPlot
   })
 
   ## Calculating alpha by the confidence level input ----
   alpha <- reactive({
-    (1 - (input$level/100))/ 2
+    (1 - (input$level / 100)) / 2
   })
 
   ## Get sample size ----
@@ -654,8 +650,11 @@ server <- function(input, output,session) {
     data.frame(
       x = do.call(
         paste0("rtruncnorm"),
-        c(list(n = as.integer(input$nsamp) * 50),
-          list(a = 200, b = 800, mean = 528, sd = 117)))
+        c(
+          list(n = as.integer(input$nsamp) * 50),
+          list(a = 200, b = 800, mean = 528, sd = 117)
+        )
+      )
     ) %>%
       mutate(idx = rep(1:50, each = input$nsamp))
   })
@@ -669,36 +668,58 @@ server <- function(input, output,session) {
         lowerbound = sampleMean + qnorm(alpha()) * 117 / sqrt(N()),
         upperbound = sampleMean - qnorm(alpha()) * 117 / sqrt(N()),
         cover = (lowerbound < 528) & (528 < upperbound),
-        .groups = 'drop') %>%
+        .groups = "drop"
+      ) %>%
       ungroup()
   })
 
   ## Default as all the samples are selected ----
-  ## What is this code's purpose?
+  ## TODO: What is this code's purpose?
   selected_sample <- 50
   selectedSample <- reactive({
-    if (! is.null(input$plot_click)) {
+    if (!is.null(input$plot_click)) {
       selected_sample <<- round(input$plot_click$y)
-      if (selected_sample < 1) {selected_sample <<- 1}
-      if (selected_sample > 50) {selected_sample <<- 50}
+      if (selected_sample < 1) {
+        selected_sample <<- 1
+      }
+      if (selected_sample > 50) {
+        selected_sample <<- 50
+      }
     }
     selected_sample
   })
   OneSample <- reactive({
     Data() %>%
-      filter( idx == selectedSample() )
+      filter(idx == selectedSample())
   })
+  
   OneSampleColor <- reactive({
     colors <- c("TRUE" = "skyblue1", "FALSE" = "lightcoral")
-    covers <- (Intervals() %>% filter(idx == selectedSample()) )$cover
-    colors[ as.character(covers) ]
+    covers <- (Intervals() %>% filter(idx == selectedSample()))$cover
+    colors[as.character(covers)]
+  })
+  
+  ### Store xAPI interacted statement ----
+  observeEvent(input$plot_click, {
+    
+    stmt <- boastUtils::generateStatement(
+      session,
+      verb = "interacted",
+      object = "CIplot",
+      description = "90% Confidence Intervals for the Mean",
+      interactionType = "numeric",
+      response = jsonlite::toJSON(input$plot_click)
+    )
+    
+    boastUtils::storeStatement(session, stmt)  
   })
 
   ## Text messages ----
   output$CoverageRate <- renderText({
     validate(
       need(is.numeric(input$nsamp),
-           message = "Please input sample size")
+        message = "Please input sample size"
+      )
     )
 
     paste0(
@@ -706,7 +727,7 @@ server <- function(input, output,session) {
       " of these ",
       nrow(Intervals()),
       " intervals cover the parameter value. The coverage rate is ",
-      round(100 *  sum(Intervals()$cover)/ nrow(Intervals()), 2),
+      round(100 * sum(Intervals()$cover) / nrow(Intervals()), 2),
       "%."
     )
   })
@@ -715,12 +736,14 @@ server <- function(input, output,session) {
   output$CIplot <- renderPlot({
     validate(
       need(is.numeric(input$nsamp),
-           message = "Please input sample size")
+        message = "Please input sample size"
+      )
     )
 
     validate(
       need(input$nsamp >= 30,
-           message = "Please input sample size larger than 30")
+        message = "Please input sample size larger than 30"
+      )
     )
 
     ggplot(data = Intervals()) +
@@ -732,15 +755,19 @@ server <- function(input, output,session) {
           y = sampleMean,
           colour = cover,
           alpha = idx == selectedSample(),
-          size = idx == selectedSample())) +
+          size = idx == selectedSample()
+        )
+      ) +
       geom_hline(
         mapping = aes(yintercept = 528, color = "zpop"),
         size = 1.25,
-        alpha = 1) +
+        alpha = 1
+      ) +
       coord_flip() +
       scale_size_manual(
         values = c("TRUE" = 1.5, "FALSE" = .7),
-        guide = FALSE) +
+        guide = FALSE
+      ) +
       scale_color_manual(
         name = NULL,
         labels = c(
@@ -756,59 +783,74 @@ server <- function(input, output,session) {
       ) +
       scale_alpha_manual(
         values = c("TRUE" = 1, "FALSE" = .5),
-        guide = FALSE) +
+        guide = FALSE
+      ) +
       labs(
         title = paste0(input$level, "% Confidence Intervals for the Mean"),
         x = NULL,
         y = "SAT math score"
-        ) +
+      ) +
       theme_bw() +
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
-        axis.title=element_text(size = 16),
+        axis.title = element_text(size = 16),
         legend.position = "bottom",
         axis.ticks.y = element_blank(),
-        axis.text.y = element_blank())
+        axis.text.y = element_blank()
+      )
   })
 
   ## This is the sample mean plot ----
   output$sampMean <- renderPlot({
     validate(
       need(is.numeric(input$nsamp),
-           message = "Please input sample size")
+        message = "Please input sample size"
+      )
     )
     validate(
       need(input$nsamp >= 30,
-           message = "Please input sample size larger than 30")
+        message = "Please input sample size larger than 30"
+      )
     )
     ggplot(data = OneSample()) +
       geom_histogram(
         mapping = aes(x = x),
         bins = 15,
         fill = OneSampleColor(),
-        col = "black") +
+        col = "black"
+      ) +
       geom_vline(
         mapping = aes(xintercept = mean(OneSample()$x), color = "sample"),
-        size = 1) +
+        size = 1
+      ) +
       geom_vline(
         mapping = aes(xintercept = 528, color = "pop"),
-        size = 1) +
-      labs(title = "Histogram of Selected Sample",
-           x = "SAT math score",
-           y = "Count") +
+        size = 1
+      ) +
+      labs(
+        title = "Histogram of Selected Sample",
+        x = "SAT math score",
+        y = "Count"
+      ) +
       theme_bw() +
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
         axis.title = element_text(size = 16),
-        legend.position = "bottom") +
-    scale_color_manual(name = NULL,
-                       labels = c("sample" = "Sample mean",
-                                  "pop" = "Population mean"),
-                       values = c("sample" = "black",
-                                  "pop" = "forestgreen")
-    )
+        legend.position = "bottom"
+      ) +
+      scale_color_manual(
+        name = NULL,
+        labels = c(
+          "sample" = "Sample mean",
+          "pop" = "Population mean"
+        ),
+        values = c(
+          "sample" = "black",
+          "pop" = "forestgreen"
+        )
+      )
   })
 
   # This is "Finding the Z* Multiplier" Part ----
@@ -818,13 +860,14 @@ server <- function(input, output,session) {
     rate$total <- nrow(Intervals())
   })
 
-  observeEvent(c( input$A, input$B, input$n, input$level),
-               { rate$cover <- sum(Intervals()$cover); rate$total <- nrow(Intervals()) }
-  )
+  observeEvent(c(input$A, input$B, input$n, input$level), {
+    rate$cover <- sum(Intervals()$cover)
+    rate$total <- nrow(Intervals())
+  })
 
   ## Calculating alpha ----
   zalpha <- reactive({
-    (1 - (input$zlevel/100)) / 2
+    (1 - (input$zlevel / 100)) / 2
   })
 
   zlowerbound <- reactive({
@@ -835,13 +878,12 @@ server <- function(input, output,session) {
     round(qnorm(zalpha(), lower.tail = FALSE), digits = 3)
   })
 
-  output$zplot = renderPlot({
-
+  output$zplot <- renderPlot({
     shadedPortion <- function(fun, alpha) {
       function(x) {
         y <- fun(x)
         y[x <= qnorm(alpha, lower.tail = TRUE) |
-            x >= qnorm(alpha, lower.tail = FALSE)] <- NA
+          x >= qnorm(alpha, lower.tail = FALSE)] <- NA
         return(y)
       }
     }
@@ -849,23 +891,28 @@ server <- function(input, output,session) {
     ggplot(
       data = data.frame(x = c(-3, 3)),
       mapping = aes(x = x)
-      ) +
+    ) +
       stat_function(fun = dnorm) +
-      stat_function(fun = shadedPortion(dnorm, zalpha()),
-      geom = "area",
-      fill = boastUtils::psuPalette[6],
-      alpha = 1
+      stat_function(
+        fun = shadedPortion(dnorm, zalpha()),
+        geom = "area",
+        fill = boastUtils::psuPalette[6],
+        alpha = 1
       ) +
       geom_segment(
-        mapping = aes(x = zlowerbound(), y = 0,
-                      xend = zlowerbound(), yend = dnorm(zlowerbound())),
+        mapping = aes(
+          x = zlowerbound(), y = 0,
+          xend = zlowerbound(), yend = dnorm(zlowerbound())
+        ),
         color = "black",
         size = 2,
         lineend = "round"
       ) +
       geom_segment(
-        mapping = aes(x = zupperbound(), y = 0,
-                      xend = zupperbound(), yend = dnorm(zupperbound())),
+        mapping = aes(
+          x = zupperbound(), y = 0,
+          xend = zupperbound(), yend = dnorm(zupperbound())
+        ),
         color = "black",
         size = 2,
         lineend = "round"
@@ -876,7 +923,7 @@ server <- function(input, output,session) {
         nudge_y = 0.025,
         label = zlowerbound(),
         size = 8
-        ) +
+      ) +
       geom_text(
         mapping = aes(x = zupperbound(), y = dnorm(zupperbound())),
         nudge_x = 0.1,
@@ -890,7 +937,8 @@ server <- function(input, output,session) {
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
-        axis.title = element_text(size = 16)) +
+        axis.title = element_text(size = 16)
+      ) +
       scale_x_continuous(breaks = seq.int(from = -3, to = 3, by = 1)) +
       scale_y_continuous(expand = expansion(mult = 0, add = c(0, 0.01)))
   })
@@ -900,23 +948,26 @@ server <- function(input, output,session) {
       need(
         !is.na(input$question1) & !is.na(input$question2) &
           !is.na(input$question3) & input$question4 != "select",
-        message = 'Please answer all questions'),
-      errorClass = "leftParagraphError")
-    if(
+        message = "Please answer all questions"
+      ),
+      errorClass = "leftParagraphError"
+    )
+    if (
       (input$question1 == 1.645 | input$question1 == 1.65 |
-       input$question1 == 1.64)
-      &(input$question2 == 1.960)
-      &(input$question3 == 2.576 | input$question3 == 2.58 |
-        input$question3 == 2.6)
-      &(input$question4 == 'y')){
-      cat('All correct. Great Job!')
+        input$question1 == 1.64)
+      & (input$question2 == 1.960)
+      & (input$question3 == 2.576 | input$question3 == 2.58 |
+          input$question3 == 2.6)
+      & (input$question4 == "y")) {
+      cat("All correct. Great Job!")
     }
 
     ## Render pic1
-    if (input$question1 != ''){
+    if (input$question1 != "") {
+      success <- abs(input$question1) - 1.645 <= 0.005
       output$pic1 <- boastUtils::renderIcon(
         icon = ifelse(
-          abs(input$question1) - 1.645 <= 0.005,
+          success,
           ifelse(
             input$question1 > 0,
             "correct",
@@ -924,15 +975,29 @@ server <- function(input, output,session) {
           ),
           "incorrect"
         ),
-        width = 36 #Note this is larger than what you currently have
+        width = 36 # Note this is larger than what you currently have
       )
-      }
+      
+      ### Store xAPI statement ----
+      stmt <- boastUtils::generateStatement(
+        session,
+        verb = "answered",
+        object = "shiny-tab-findz",
+        description = "What is Z* Multiplier for 90% confidence level?",
+        interactionType = "numeric",
+        response = input$question1,
+        success = success
+      )
+      
+      boastUtils::storeStatement(session, stmt)
+    }
 
     ## Render pic2
-    if (input$question2 != ''){
+    if (input$question2 != "") {
+      success <- abs(input$question2 - 1.960) <= 0.005
       output$pic2 <- boastUtils::renderIcon(
         icon = ifelse(
-          abs(input$question2 - 1.960) <= 0.005,
+          success,
           ifelse(
             input$question2 > 0,
             "correct",
@@ -940,14 +1005,29 @@ server <- function(input, output,session) {
           ),
           "incorrect"
         ),
-        width = 36 #Note this is larger than what you currently have
-      )}
+        width = 36 # Note this is larger than what you currently have
+      )
+      
+      ### Store xAPI statement ----
+      stmt <- boastUtils::generateStatement(
+        session,
+        verb = "answered",
+        object = "shiny-tab-findz",
+        description = "What is Z* Multiplier for 95% confidence level?",
+        interactionType = "numeric",
+        response = input$question2,
+        success = success
+      )
+      
+      boastUtils::storeStatement(session, stmt)
+    }
 
     ## Render pic3
-    if (input$question3 != ''){
+    if (input$question3 != "") {
+      success <- abs(input$question3 - 2.576) <= 0.005
       output$pic3 <- boastUtils::renderIcon(
         icon = ifelse(
-          abs(input$question3 - 2.576) <= 0.005,
+          success,
           ifelse(
             input$question3 > 0,
             "correct",
@@ -955,29 +1035,58 @@ server <- function(input, output,session) {
           ),
           "incorrect"
         ),
-        width = 36 #Note this is larger than what you currently have
-      )}
+        width = 36 # Note this is larger than what you currently have
+      )
+      
+      ### Store xAPI statement ----
+      stmt <- boastUtils::generateStatement(
+        session,
+        verb = "answered",
+        object = "shiny-tab-findz",
+        description = "What is Z* Multiplier for 99% confidence level?",
+        interactionType = "numeric",
+        response = input$question3,
+        success = success
+      )
+      
+      boastUtils::storeStatement(session, stmt)
+    }
 
     ## Render pic4
-    if (input$question4 != "select"){
+    if (input$question4 != "select") {
       output$pic4 <- boastUtils::renderIcon(
         icon = ifelse(
-            input$question4 == 'y',
-            ifelse(
-              input$question4 > 0,
-              "correct",
-              "partial"
-            ),
-            "incorrect"
+          input$question4 == "y",
+          ifelse(
+            input$question4 > 0,
+            "correct",
+            "partial"
+          ),
+          "incorrect"
         ),
         width = 36
-      )}
+      )
+      
+      ### Store xAPI statement ----
+      stmt <- boastUtils::generateStatement(
+        session,
+        verb = "answered",
+        object = "shiny-tab-findz",
+        description = "True or False: Increasing the confidence level makes 
+        the confidence interval wider.",
+        interactionType = "choice",
+        response = input$question4,
+        success = success
+      )
+      
+      boastUtils::storeStatement(session, stmt)
+    }
   })
 
   # This is "Difference of Means" part
   ## Calculating alpha by the confidence level input
   dalpha <- reactive({
-    (1 - (input$dlevel/100)) / 2
+    (1 - (input$dlevel / 100)) / 2
   })
 
   ## Updating Sample Size
@@ -990,32 +1099,33 @@ server <- function(input, output,session) {
   })
 
   standardError <- reactive({
-    sqrt(118^2/(maleN())+113^2/(femaleN()))
+    sqrt(118^2 / (maleN()) + 113^2 / (femaleN()))
   })
 
   ## population mean plot with true diff mean
-  output$dpopMean  = renderPlot({
+  output$dpopMean <- renderPlot({
     erwPopPlot
   })
 
   MaleS <- reactive({
     input$newSample
-    rtruncnorm(n = maleN(), a = 200, b = 800, mean = 529, sd= 118)
+    rtruncnorm(n = maleN(), a = 200, b = 800, mean = 529, sd = 118)
   })
 
   FemaleS <- reactive({
     input$newSample
-    rtruncnorm(n = femaleN(),a = 200, b = 800, mean = 534, sd = 113)
+    rtruncnorm(n = femaleN(), a = 200, b = 800, mean = 534, sd = 113)
   })
 
   Diff <- reactive({
     mean(MaleS()) - mean(FemaleS())
   })
 
-  output$sampleDiff = renderPlot({
+  output$sampleDiff <- renderPlot({
     validate(
       need(is.numeric(input$nSamp),
-           message = "Please input sample size")
+        message = "Please input sample size"
+      )
     )
 
     input$newSample
@@ -1026,8 +1136,8 @@ server <- function(input, output,session) {
     ## Now, combine your two data frames into one.
     ## First make a new column in each that will be a variable to identify where
     ## they came from later.
-    malesample$Gender <- 'Male'
-    femalesample$Gender <- 'Female'
+    malesample$Gender <- "Male"
+    femalesample$Gender <- "Female"
 
     ## and combine into your new data frame
     sampleTWO <- rbind(femalesample, malesample)
@@ -1035,21 +1145,26 @@ server <- function(input, output,session) {
     ## Density plot for sample means
     ggplot(
       data = sampleTWO,
-      mapping = aes(sampleGen, fill = Gender)) +
-      geom_density(mapping = aes(group=rev(Gender)),
-                   alpha = 0.5)+
-      geom_vline(xintercept = mean(MaleS()), color = "dodgerblue", size = 1)+
-      geom_vline(xintercept = mean(FemaleS()), color = "hotpink", size = 1)+
+      mapping = aes(sampleGen, fill = Gender)
+    ) +
+      geom_density(
+        mapping = aes(group = rev(Gender)),
+        alpha = 0.5
+      ) +
+      geom_vline(xintercept = mean(MaleS()), color = "dodgerblue", size = 1) +
+      geom_vline(xintercept = mean(FemaleS()), color = "hotpink", size = 1) +
       labs(
         title = paste0("Sample Density Graph"),
         x = "Sample mean in blue and pink color",
-        y = "Density") +
-      scale_x_continuous(breaks = c(200,300,400,480,600,700,800)) +
+        y = "Density"
+      ) +
+      scale_x_continuous(breaks = c(200, 300, 400, 480, 600, 700, 800)) +
       theme_bw() +
       theme(
         plot.caption = element_text(size = 18),
         text = element_text(size = 18),
-        axis.title = element_text(size = 16)) +
+        axis.title = element_text(size = 16)
+      ) +
       scale_fill_manual(
         name = "Sex",
         values = c(
@@ -1062,72 +1177,74 @@ server <- function(input, output,session) {
   dlowerbound <- reactive({
     Diff() + qnorm(dalpha()) * standardError()
   })
+  
   dupperbound <- reactive({
     Diff() - qnorm(dalpha()) * standardError()
   })
 
   pvalue <- reactive({
-    2*(1-pnorm(abs(zstatistic())))
+    2 * (1 - pnorm(abs(zstatistic())))
   })
 
   zstatistic <- reactive({
-    Diff()/standardError()
-
+    Diff() / standardError()
   })
 
-  output$CTtable = renderTable({
+  output$CTtable <- renderTable({
     validate(
       need(is.numeric(input$nSamp),
-           message = "Please input sample size")
+        message = "Please input sample size"
+      )
     )
-    if(input$CTcheckbox)
-    {
-      ctable = matrix(c(dlowerbound(),dupperbound(),zstatistic(), pvalue()),nrow=1)
-      colnames(ctable) = c("Lower bound","Upper bound","z-statistic", "p-value")
+    if (input$CTcheckbox) {
+      ctable <- matrix(c(dlowerbound(), dupperbound(), zstatistic(), pvalue()), nrow = 1)
+      colnames(ctable) <- c("Lower bound", "Upper bound", "z-statistic", "p-value")
       ctable
     }
   })
 
-
-  output$sampInfor = renderUI({
-    paste0("The difference in sample means is ",
-    round(Diff(), digits = 2),
-    ". The value of the sample standard deviation for the difference in means is ",
-    round(standardError(), digits = 3))
+  output$sampInfor <- renderUI({
+    paste0(
+      "The difference in sample means is ",
+      round(Diff(), digits = 2),
+      ". The value of the sample standard deviation for the difference in means is ",
+      round(standardError(), digits = 3)
+    )
   })
   zstandard <- reactive({
     -qnorm(dalpha())
   })
 
-  output$decisionZ = renderText({
+  output$decisionZ <- renderText({
     validate(
       need(is.numeric(input$nSamp),
-           message = "Please input sample size")
+        message = "Please input sample size"
+      )
     )
-    if(input$decisioncheckbox)
-    {
-      if(abs(zstatistic()) <= zstandard()){
-        paste("Since it is observed that |z| = ", abs(round(zstatistic(),3)),"
-              is less than Z* score = ", round(zstandard(),3),", and its p-value = ",
-              round(pvalue(),3)," is larger than ",round(2*dalpha(),3),",
+    if (input$decisioncheckbox) {
+      if (abs(zstatistic()) <= zstandard()) {
+        paste(
+          "Since it is observed that |z| = ", abs(round(zstatistic(), 3)), "
+              is less than Z* score = ", round(zstandard(), 3), ", and its p-value = ",
+          round(pvalue(), 3), " is larger than ", round(2 * dalpha(), 3), ",
               the null hypothesis provides a reasonable explanation of the data
               so we can NOT conclude that males and females have a different average
               SAT ERW score when student's are chosen by the researcher's sampling
-              procedure.")
-
-      }else{
-        paste("Since it is observed that |z| = ", abs(round(zstatistic(),3)),"
-              is larger than Z* score = ", round(zstandard(),3),
-              ", and its p-value = ",round(pvalue(),3)," is less than ",
-              round(2*dalpha(),3),", the null hypothesis is not a reasonable
+              procedure."
+        )
+      } else {
+        paste(
+          "Since it is observed that |z| = ", abs(round(zstatistic(), 3)), "
+              is larger than Z* score = ", round(zstandard(), 3),
+          ", and its p-value = ", round(pvalue(), 3), " is less than ",
+          round(2 * dalpha(), 3), ", the null hypothesis is not a reasonable
               explanation of the data so we have evidence that there is a difference
               between the male and female average SAT ERW score when students
-              are chosen by the researcher's sampling procedure.")
+              are chosen by the researcher's sampling procedure."
+        )
       }
     }
-
   })
-
 }
 
 # Boast App Call----

@@ -9,7 +9,7 @@ library(truncnorm) # This is needed to simulate SAT values
 library(scales)
 
 # App Meta Data----------------------------------------------------------------
-APP_TITLE <<- "Confidence Interval for One or Two Means"
+APP_TITLE <<- "Confidence Intervals for One or Two Means"
 APP_DESCP <<- paste(
   "This app explores the behavior of confidence intervals
   for a single mean and two sample tests for the difference
@@ -42,7 +42,7 @@ mathPopPlot <- ggplot(
     args = list(mean = 528, sd = 117),
     size = 1
   ) +
-  geom_vline(xintercept = 528, color = "forestgreen", size = 1.5) +
+  geom_vline(xintercept = 528, color = boastPalette[3], size = 1.5) +
   labs(
     title = "Population Histogram",
     x = "SAT math scores",
@@ -161,12 +161,12 @@ ui <- list(
     ),
     # Body ----
     dashboardBody(
-      # Overview" ----
+      # Overview ----
       tabItems(
         tabItem(
           tabName = "Overview",
           withMathJax(),
-          h1("Confidence Interval for One or Two Means"),
+          h1("Confidence Intervals for One or Two Means"),
           p("This app represents an interactive supplementary module embedded in
             statistics lessons with two features. The first feature visualizes
             how the variations in confidence levels and sample size affect the
@@ -177,7 +177,7 @@ ui <- list(
             scenarios provided in context."),
           h2("Instructions"),
           tags$ul(
-            tags$li(strong("SAT Math 2019 and Difference of Means Pages")),
+            tags$li(strong("SAT Math 2019 and Difference of Means pages")),
             tags$ul(
               tags$li("Move the sample size and level sliders to see how they
                       affect confidence intervals for the mean SAT math scores or
@@ -187,7 +187,7 @@ ui <- list(
                       the confidence interval app, click on the center of an
                       interval to show data for that sample."),
               tags$li(
-                strong("Difference of Means Page: "),
+                strong("Difference of Means page: "),
                 "You can change the sample size and/or the confidence level
                     and explore the behavior of a Z-test for differences between
                     males and females on the SAT ERW scores based on sample data."
@@ -220,9 +220,9 @@ ui <- list(
           br(),
           br(),
           br(),
-          div(class = "updated", "Last Update: 11/1/2020 by XW.")
+          div(class = "updated", "Last Update: 11/3/2020 by NJH.")
         ),
-        # "SAT Math 2019" ----
+        # SAT Math 2019 ----
         tabItem(
           tabName = "2019",
           h2("Confidence Intervals for 2019 SAT Math Scores"),
@@ -233,18 +233,14 @@ ui <- list(
             collapsed = FALSE,
             width = "100%",
             p("A researcher plans to take a random sample of size n students to
-              do a survey about their experience on the SAT math test. However,
-              she worries that sample results could be biased because the students
-              who agree to participate might be different from those who don't
-              (this would be an example of non-response bias). The researcher
+              do a survey about their experience on the SAT math test. The researcher
               makes a confidence interval for the SAT math scores of the students
               in her study and compares it to the mean of 528 for the population
-              of all seniors in the U.S. This app shows how confidence intervals
-              of that type would come out when there is no bias. These data are
-              about College Bound high school graduates in the year of 2019 who
-              participated in the SAT Program. Students are counted only once,
-              no matter how often they tested, and only their latest scores and
-              most recent SAT Questionnaire responses are summarized.")
+              of all seniors in the U.S. These data are about College Bound high
+              school graduates in the year of 2019 who participated in the SAT
+              Program. Students are counted only once, no matter how often they
+              tested, and only their latest scores and most recent SAT
+              Questionnaire responses are summarized.")
           ),
           fluidRow(
             column(
@@ -265,7 +261,8 @@ ui <- list(
                   label = "Sample size (n > 30)",
                   min = 30,
                   max = 500,
-                  value = 30
+                  value = 30,
+                  step = 1
                 ),
                 p("Click the following button to create 50 samples of your
                   selected sample size to see their confidence intervals and
@@ -284,8 +281,8 @@ ui <- list(
               tags$script(HTML(
                 "$(document).ready(function() {
                 document.getElementById('popMean').setAttribute('aria-labelledby',
-            'mathPopPara')
-              })"
+                'mathPopPara')
+                })"
               )),
               p(
                 id = "mathPopPara",
@@ -304,7 +301,7 @@ ui <- list(
               tags$script(HTML(
                 "$(document).ready(function() {
               document.getElementById('sampMean').setAttribute('aria-label',
-              `This is a bar chart for sample mean.`)
+              `This is a bar chart for a single sample.`)
               })"
               )),
               uiOutput("sampleColors")
@@ -554,7 +551,8 @@ ui <- list(
           ),
           p(
             class = "hangingindent",
-            "Carey, R. (2019), boastUtils: BOAST Utilities, R Package.
+            "Carey, R. and Hatfield, N. J. (20202), boastUtils: BOAST Utilities,
+            R Package.
             Available from https://github.com/EducationShinyAppTeam/boastUtils"
           ),
           p(
@@ -636,12 +634,12 @@ server <- function(input, output, session) {
   })
 
   ## Calculating alpha by the confidence level input ----
-  alpha <- reactive({
+  alpha <- eventReactive(input$new, {
     (1 - (input$level / 100)) / 2
   })
 
   ## Get sample size ----
-  N <- reactive({
+  N <- eventReactive(input$new, {
     as.integer(input$nsamp)
   })
 
@@ -664,6 +662,7 @@ server <- function(input, output, session) {
     Data() %>%
       group_by(idx) %>%
       summarise(
+        .groups = "keep",
         sampleMean = mean(x),
         lowerbound = sampleMean + qnorm(alpha()) * 117 / sqrt(N()),
         upperbound = sampleMean - qnorm(alpha()) * 117 / sqrt(N()),
@@ -692,16 +691,16 @@ server <- function(input, output, session) {
     Data() %>%
       filter(idx == selectedSample())
   })
-  
+
   OneSampleColor <- reactive({
     colors <- c("TRUE" = "skyblue1", "FALSE" = "lightcoral")
     covers <- (Intervals() %>% filter(idx == selectedSample()))$cover
     colors[as.character(covers)]
   })
-  
+
   ### Store xAPI interacted statement ----
   observeEvent(input$plot_click, {
-    
+
     stmt <- boastUtils::generateStatement(
       session,
       verb = "interacted",
@@ -710,8 +709,8 @@ server <- function(input, output, session) {
       interactionType = "numeric",
       response = jsonlite::toJSON(input$plot_click)
     )
-    
-    boastUtils::storeStatement(session, stmt)  
+
+    boastUtils::storeStatement(session, stmt)
   })
 
   ## Text messages ----
@@ -748,7 +747,7 @@ server <- function(input, output, session) {
 
     ggplot(data = Intervals()) +
       geom_pointrange(
-        aes(
+        mapping = aes(
           x = idx,
           ymin = lowerbound,
           ymax = upperbound,
@@ -778,7 +777,7 @@ server <- function(input, output, session) {
         values = c(
           "TRUE" = "dodgerblue3",
           "FALSE" = "red",
-          "zpop" = "forestgreen"
+          "zpop" = boastPalette[3]
         )
       ) +
       scale_alpha_manual(
@@ -848,7 +847,7 @@ server <- function(input, output, session) {
         ),
         values = c(
           "sample" = "black",
-          "pop" = "forestgreen"
+          "pop" = boastPalette[3]
         )
       )
   })
@@ -975,9 +974,9 @@ server <- function(input, output, session) {
           ),
           "incorrect"
         ),
-        width = 36 # Note this is larger than what you currently have
+        width = 36
       )
-      
+
       ### Store xAPI statement ----
       stmt <- boastUtils::generateStatement(
         session,
@@ -988,13 +987,13 @@ server <- function(input, output, session) {
         response = input$question1,
         success = success
       )
-      
+
       boastUtils::storeStatement(session, stmt)
     }
 
     ## Render pic2
     if (input$question2 != "") {
-      success <- abs(input$question2 - 1.960) <= 0.005
+      success <- abs(input$question2) - 1.960 <= 0.005
       output$pic2 <- boastUtils::renderIcon(
         icon = ifelse(
           success,
@@ -1005,9 +1004,9 @@ server <- function(input, output, session) {
           ),
           "incorrect"
         ),
-        width = 36 # Note this is larger than what you currently have
+        width = 36
       )
-      
+
       ### Store xAPI statement ----
       stmt <- boastUtils::generateStatement(
         session,
@@ -1018,13 +1017,13 @@ server <- function(input, output, session) {
         response = input$question2,
         success = success
       )
-      
+
       boastUtils::storeStatement(session, stmt)
     }
 
     ## Render pic3
     if (input$question3 != "") {
-      success <- abs(input$question3 - 2.576) <= 0.005
+      success <- abs(input$question3) - 2.576 <= 0.005
       output$pic3 <- boastUtils::renderIcon(
         icon = ifelse(
           success,
@@ -1035,9 +1034,9 @@ server <- function(input, output, session) {
           ),
           "incorrect"
         ),
-        width = 36 # Note this is larger than what you currently have
+        width = 36
       )
-      
+
       ### Store xAPI statement ----
       stmt <- boastUtils::generateStatement(
         session,
@@ -1048,7 +1047,7 @@ server <- function(input, output, session) {
         response = input$question3,
         success = success
       )
-      
+
       boastUtils::storeStatement(session, stmt)
     }
 
@@ -1057,28 +1056,24 @@ server <- function(input, output, session) {
       output$pic4 <- boastUtils::renderIcon(
         icon = ifelse(
           input$question4 == "y",
-          ifelse(
-            input$question4 > 0,
-            "correct",
-            "partial"
-          ),
+          "correct",
           "incorrect"
         ),
         width = 36
       )
-      
+
       ### Store xAPI statement ----
       stmt <- boastUtils::generateStatement(
         session,
         verb = "answered",
         object = "shiny-tab-findz",
-        description = "True or False: Increasing the confidence level makes 
+        description = "True or False: Increasing the confidence level makes
         the confidence interval wider.",
         interactionType = "choice",
         response = input$question4,
         success = success
       )
-      
+
       boastUtils::storeStatement(session, stmt)
     }
   })
@@ -1177,7 +1172,7 @@ server <- function(input, output, session) {
   dlowerbound <- reactive({
     Diff() + qnorm(dalpha()) * standardError()
   })
-  
+
   dupperbound <- reactive({
     Diff() - qnorm(dalpha()) * standardError()
   })

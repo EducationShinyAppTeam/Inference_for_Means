@@ -8,15 +8,6 @@ library(mosaic)
 library(truncnorm) # This is needed to simulate SAT values
 library(scales)
 
-# App Meta Data----------------------------------------------------------------
-APP_TITLE <<- "Confidence Intervals for One or Two Means"
-APP_DESCP <<- paste(
-  "This app explores the behavior of confidence intervals
-  for a single mean and two sample tests for the difference
-  in means as the level and sample size changes."
-)
-# End App Meta Data------------------------------------------------------------
-
 # Global constants, functions, and data ----
 
 ## Population plot for the SAT Math scores

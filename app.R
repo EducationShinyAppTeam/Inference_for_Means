@@ -4,9 +4,7 @@ library(shinydashboard)
 library(shinyBS)
 library(boastUtils)
 library(ggplot2)
-library(mosaic)
 library(truncnorm) # This is needed to simulate SAT values
-library(scales)
 
 # Global constants, functions, and data ----
 
@@ -572,17 +570,6 @@ ui <- list(
             "Mersmann, O., Trautmann, H., Steuer, D., Bornkam, B. (2018), truncnorm:
             Truncated Normal Distribution, R Package. Available from
             https://CRAN.R-project.org/package=truncnorm"
-          ),
-          p(
-            class = "hangingindent",
-            'Pruim, R., Kaplan, D., Horton, N. (2017), "The mosaic Package: Helping
-            Students to <Think with Data> Using R". The R Journal. Available at
-            https://journal.r-project.org/archive/2017/RJ-2017-024/index.html'
-          ),
-          p(
-            class = "hangingindent",
-            "Wickham, H., Seidel, D. (2020), scales: Scale Functions for Visualization,
-            R Package. Available from https://CRAN.R-project.org/package=scales"
           ),
           p(
             class = "hangingindent",

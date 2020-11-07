@@ -4,7 +4,9 @@ library(shinydashboard)
 library(shinyBS)
 library(boastUtils)
 library(ggplot2)
+library(dplyr)
 library(truncnorm) # This is needed to simulate SAT values
+
 
 # Global constants, functions, and data ----
 
@@ -573,9 +575,15 @@ ui <- list(
           ),
           p(
             class = "hangingindent",
-            'Wickham, H. (2016), "ggplot2: Elegant graphics for data analysis",
+            'Wickham, H. (2016), ggplot2: Elegant graphics for data analysis,
             R Package. Springer-Verlag New York. Available at
             https: // ggplot2.tidyverse.org'
+          ),
+          p(
+            class = "hangingindent",
+            "Wickham, H., François, R., Henry, L., and Müller, K. (2020),
+            dplyr: A grammar of data manipulation, R Package. Available from
+            https://CRAN.R-project.org/package=dplyr"
           )
         )
       )

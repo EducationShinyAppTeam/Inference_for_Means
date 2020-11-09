@@ -655,8 +655,7 @@ server <- function(input, output, session) {
         sampleMean = mean(x),
         lowerbound = sampleMean + qnorm(alpha()) * 117 / sqrt(N()),
         upperbound = sampleMean - qnorm(alpha()) * 117 / sqrt(N()),
-        cover = (lowerbound < 528) & (528 < upperbound),
-        .groups = "drop"
+        cover = (lowerbound < 528) & (528 < upperbound)
       ) %>%
       ungroup()
   })

@@ -584,7 +584,11 @@ ui <- list(
             "Wickham, H., François, R., Henry, L., and Müller, K. (2020),
             dplyr: A grammar of data manipulation, R Package. Available from
             https://CRAN.R-project.org/package=dplyr"
-          )
+          ),
+          br(),
+          br(),
+          br(),
+          boastUtils::copyrightInfo()
         )
       )
     )
